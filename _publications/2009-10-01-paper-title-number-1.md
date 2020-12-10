@@ -1,15 +1,9 @@
 ---
-title: "Paper Title Number 1"
+title: "Portable Medical Records Using Internet of Things for Medical Devices"
 collection: publications
-permalink: /publication/2009-10-01-paper-title-number-1
-excerpt: 'This paper is about the number 1. The number 2 is left for future work.'
-date: 2009-10-01
-venue: 'Journal 1'
-paperurl: 'http://academicpages.github.io/files/paper1.pdf'
-citation: 'Your Name, You. (2009). &quot;Paper Title Number 1.&quot; <i>Journal 1</i>. 1(1).'
+excerpt: 'This paper demonstrates the various functionalities implemented inorder to devise portable medical records and discusses on the scope of the core idea in the near future revolutionizing the field of healthcare.'
+date: 2016
+venue: 'International Conference on Computational Intelligence and Communication Networks (CICN)'
+paperurl: 'https://ieeexplore.ieee.org/document/8082685'
+citation: 'A. Chhatlani, A. Dadlani, M. Gidwani, M. Keswani and P. Kanade, "Portable Medical Records Using Internet of Things for Medical Devices," 2016 8th International Conference on Computational Intelligence and Communication Networks (CICN), Tehri, 2016, pp. 446-451, doi: 10.1109/CICN.2016.93.'
 ---
-This paper is about the number 1. The number 2 is left for future work.
-
-[Download paper here](http://academicpages.github.io/files/paper1.pdf)
-
-Recommended citation: Your Name, You. (2009). "Paper Title Number 1." <i>Journal 1</i>. 1(1).
