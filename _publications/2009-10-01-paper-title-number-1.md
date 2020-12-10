@@ -1,6 +1,7 @@
 ---
 title: "Portable Medical Records Using Internet of Things for Medical Devices"
 collection: publications
+permalink: /publication/2010-10-01-paper-title-number-1
 excerpt: 'This paper demonstrates the various functionalities implemented inorder to devise portable medical records and discusses on the scope of the core idea in the near future revolutionizing the field of healthcare.'
 date: 2016-11-10
 venue: 'International Conference on Computational Intelligence and Communication Networks (CICN)'
