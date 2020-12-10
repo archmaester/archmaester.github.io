@@ -83,9 +83,9 @@ author:
   name             : "archmaester"
   avatar           : "profile.png"
   bio              : "Project Assistant @VCL @ IISc"
-  location         : "Location"
+  location         : 
   employer         :
-  pubmed           : ""
+  pubmed           : 
   googlescholar    : "https://scholar.google.com/citations?user=b8b_eGUAAAAJ&hl=en"
   email            : "monish [dot] keswani01 [at] gmail.com"
   researchgate     :  # example: "https://www.researchgate.net/profile/yourprofile"
