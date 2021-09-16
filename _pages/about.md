@@ -29,6 +29,10 @@ My research is on computer vision with a focus on
 See [here](./vacancy) for more details.
 
 
+<div class="twitter-feed" style="width: 500px; height: 500px; overflow-y: scroll;">
+{% twitter https://twitter.com/giotolias maxwidth=500 maxheight=50 overflow=scroll limit=100 %}
+</div>
+
 <!-- Write your biography here. Tell the world about yourself. Link to your favorite [subreddit](http://reddit.com){:target="\_blank"}. You can put a picture in, too. The code is already in, just name your picture `prof_pic.jpg` and put it in the `img/` folder.
 
 Put your address / P.O. box / other info right below your picture. You can also disable any these elements by editing `profile` property of the YAML header of your `_pages/about.md`. Edit `_bibliography/papers.bib` and Jekyll will render your [publications page](/al-folio/publications/) automatically.
