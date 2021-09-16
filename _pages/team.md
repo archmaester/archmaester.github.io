@@ -1,5 +1,5 @@
 ---
-layout: team
+layout: page
 title: team
 permalink: /team/
 social: true
