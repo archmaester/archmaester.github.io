@@ -3,6 +3,7 @@
 
 @inproceedings{tolias2020learning,
   abbr={ECCV},
+  abstract={We propose an efficient method to learn deep local descriptors for instance-level recognition. The training only requires examples of positive and negative image pairs and is performed as metric learning of sum-pooled global image descriptors. At inference, the local descriptors are provided by the activations of internal components of the network. We demonstrate why such an approach learns local descriptors that work well for image similarity estimation with classical efficient match kernel methods. The experimental validation studies the trade-off between performance and memory requirements of the state-of-the-art image search approach based on match kernels. Compared to existing local descriptors, the proposed ones perform better in two instance-level recognition tasks and keep memory requirements lower. We experimentally show that global descriptors are not effective enough at large scale and that local descriptors are essential. We achieve state-of-the-art performance, in some cases even with a backbone network as small as ResNet18},
   title={Learning and aggregating deep local descriptors for instance-level recognition},
   bibtex_show = {true},
   author={Tolias, Giorgos and Jenicek, Tomas and Chum, Ond{\v{r}}ej},
@@ -10,21 +11,25 @@
   pages={460--477},
   year={2020},
   code={https://github.com/gtolias/how},
-  pdf={https://arxiv.org/abs/2007.13172},
+  pdf={https://arxiv.org/pdf/2007.13172.pdf},
   organization={Springer},
-  selected=true
+  selected=true,
+  arxiv={2007.13172},
+  talk={https://crossminds.ai/video/learning-and-aggregating-deep-local-descriptors-for-instance-level-recognition-5f3b298b96cfcc9d075e35cc/}
 }
 
 @inproceedings{iscen2020graph,
   abbr={ECCV},
+  abstract={In this work we consider the problem of learning a classifier from noisy labels when a few clean labeled examples are given. The structure of clean and noisy data is modeled by a graph per class and Graph Convolutional Networks (GCN) are used to predict class relevance of noisy examples. For each class, the GCN is treated as a binary classifier, which learns to discriminate clean from noisy examples using a weighted binary cross-entropy loss function. The GCN-inferred “clean” probability is then exploited as a relevance measure. Each noisy example is weighted by its relevance when learning a classifier for the end task. We evaluate our method on an extended version of a few-shot learning problem, where the few clean examples of novel classes are supplemented with additional noisy data. Experimental results show that our GCN-based cleaning process significantly improves the classification accuracy over not cleaning the noisy data, as well as standard few-shot classification where only few clean examples are used.},
   title={Graph convolutional networks for learning with few clean and many noisy labels},
   bibtex_show = {true},
   author={Iscen, Ahmet and Tolias, Giorgos and Avrithis, Yannis and Chum, Ond{\v{r}}ej and Schmid, Cordelia},
   booktitle={European Conference on Computer Vision},
   pages={286--302},
   year={2020},
-  pdf={https://arxiv.org/abs/1910.00324},
-  organization={Springer}
+  pdf={https://arxiv.org/pdf/1910.00324.pdf},
+  organization={Springer},
+  arxiv={1910.00324}
 }
 
 @article{DBLP:journals/corr/abs-2108-11179,
@@ -37,15 +42,15 @@
   journal   = {CoRR},
   volume    = {abs/2108.11179},
   year      = {2021},
-  url       = {https://arxiv.org/abs/2108.11179},
+  url       = {https://arxiv.org/pdf/2108.11179.pdf},
   eprinttype = {arXiv},
   eprint    = {2108.11179},
   timestamp = {Fri, 27 Aug 2021 15:02:29 +0200},
   biburl    = {https://dblp.org/rec/journals/corr/abs-2108-11179.bib},
-  pdf      = {https://arxiv.org/abs/2108.11179},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
+  pdf      = {https://arxiv.org/pdf/2108.11179.pdf},
+  bibsource = {dblp computer science bibliography, https://dblp.org},
+  arxiv = {2108.11179}
 }
-
 
 @article{douze20212021,
   abbr={ArxiV},
@@ -53,8 +58,9 @@
   bibtex_show = {true},
   author={Douze, Matthijs and Tolias, Giorgos and Pizzi, Ed and Papakipos, Zo{\"e} and Chanussot, Lowik and Radenovic, Filip and Jenicek, Tomas and Maximov, Maxim and Leal-Taix{\'e}, Laura and Elezi, Ismail and others},
   journal={arXiv preprint arXiv:2106.09672},
-  pdf={https://arxiv.org/abs/2106.09672},
-  year={2021}
+  pdf={https://arxiv.org/abs/2106.09672.pdf},
+  year={2021},
+  arxiv={2106.09672}
 }
 
 @article{simeoni2019graph,
@@ -79,7 +85,9 @@
   booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision},
   pages={5037--5046},
   pdf={https://openaccess.thecvf.com/content_ICCV_2019/html/Tolias_Targeted_Mismatch_Adversarial_Attack_Query_With_a_Flower_to_Retrieve_ICCV_2019_paper.html},
-  year={2019}
+  year={2019},
+  arxiv={1908.09163}
+
 }
 
 @inproceedings{mukundan2019explicit,
@@ -90,7 +98,8 @@
   booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
   pages={9394--9403},
   pdf={https://openaccess.thecvf.com/content_CVPR_2019/html/Mukundan_Explicit_Spatial_Encoding_for_Deep_Local_Descriptors_CVPR_2019_paper.html},
-  year={2019}
+  year={2019},
+  arxiv={1904.07190}
 }
 
 @inproceedings{iscen2019label,

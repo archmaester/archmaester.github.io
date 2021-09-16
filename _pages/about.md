@@ -6,15 +6,15 @@ description: Assistant Professor, <a href="https://www.cvut.cz/en">Czech Technic
 
 profile:
   align: right
+  citations: true
   image: prof_pic.jpg
   address: >
-    <p>Karlovo namesti 13, 121 35, Praha 2, Czech Republic</p>
+      <p>Karlovo namesti 13, 121 35, Praha 2, Czech Republic</p>
 
 news: true  # includes a list of news items
 selected_papers: true # includes a list of papers marked as "selected={true}"
 social: true  # includes social icons at the bottom of the page
 ---
-
 
 I am an assistant professor at the [Czech Technical University](https://www.cvut.cz/en) in Prague and a member of the [Visual Recognition Group](https://cyber.felk.cvut.cz/research/groups-teams/vrg/). Before I was a postdoc at the [LinkMedia](https://www-linkmedia.irisa.fr/) team of Inria Rennes. I obtained my Ph.D from the National Technical University of Athens where I worked with the [Image and Video Analysis Team](http://www.image.ntua.gr/iva/). 
 

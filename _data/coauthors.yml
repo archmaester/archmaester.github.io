@@ -1,7 +1,15 @@
 "Chum":
-  - firstname: ["Ondrej"]
+  - firstname: ["Ondřej"]
     url: https://cmp.felk.cvut.cz/~chum/
 
-"Tomas":
-  - firstname: ["Jenicek"]
+"Jenicek":
+  - firstname: ["Jenicek Tomas", "Tomas Jenicek", "Tomas"]
     url: https://cmp.felk.cvut.cz/~jenicto2/
+
+"Patel":
+  - firstname: ["Yash"]
+    url: https://yash0307.github.io/
+
+"Matas":
+  - firstname: ["Jiri"]
+    url: https://cmp.felk.cvut.cz/~matas/
