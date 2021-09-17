@@ -6,7 +6,7 @@ social: true
 nav: true
 ---
 
-* * *
+<hr class="navbar">
 ##### **PostDoc Positions**
 
 Not available
