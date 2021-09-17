@@ -10,11 +10,13 @@ nav: true
 ##### **PostDoc researchers**
 <div class="current">
 
-{% for member in site.currentTeam %}
+{% for member in site.team %}
   {% if member.type == "PostDoc" %}
-  	{% if member.html %}
+	{% if member.html %}
   	<p><a href="{{ member.html }}">{{ member.name }}</a>, {{ member.join}} - {{member.leave}} (Prev Affiliation: {{ member.prev }})</p>
-    {% else %}
+    {% else if member.url %}
+  	<p><a href="{{ member.url }}">{{ member.name }}</a>, {{ member.join}} - {{member.leave}} (Prev Affiliation: {{ member.prev }})</p>
+  	{% else %}
   	<p>{{ member.name }}, {{ member.join}} - {{member.leave}} (Prev Affiliation: {{ member.prev }})</p>
   	{% endif %}
   {% endif %}
@@ -26,11 +28,13 @@ nav: true
 ##### **PhD students**
 <div class="current">
 
-{% for member in site.currentTeam %}
+{% for member in site.team %}
   {% if member.type == "PhD" %}
-  	{% if member.html %}
+	{% if member.html %}
   	<p><a href="{{ member.html }}">{{ member.name }}</a>, {{ member.join}} - {{member.leave}} (Prev Affiliation: {{ member.prev }})</p>
-    {% else %}
+    {% else if member.url %}
+  	<p><a href="{{ member.url }}">{{ member.name }}</a>, {{ member.join}} - {{member.leave}} (Prev Affiliation: {{ member.prev }})</p>
+  	{% else %}
   	<p>{{ member.name }}, {{ member.join}} - {{member.leave}} (Prev Affiliation: {{ member.prev }})</p>
   	{% endif %}
   {% endif %}
@@ -42,11 +46,13 @@ nav: true
 ##### **Masters students**
 <div class="current">
 
-{% for member in site.currentTeam %}
+{% for member in site.team %}
   {% if member.type == "Masters" %}
-  	{% if member.html %}
+	{% if member.html %}
   	<p><a href="{{ member.html }}">{{ member.name }}</a>, {{ member.join}} - {{member.leave}} (Prev Affiliation: {{ member.prev }})</p>
-    {% else %}
+    {% else if member.url %}
+  	<p><a href="{{ member.url }}">{{ member.name }}</a>, {{ member.join}} - {{member.leave}} (Prev Affiliation: {{ member.prev }})</p>
+  	{% else %}
   	<p>{{ member.name }}, {{ member.join}} - {{member.leave}} (Prev Affiliation: {{ member.prev }})</p>
   	{% endif %}
   {% endif %}
@@ -58,7 +64,7 @@ nav: true
 ##### **Interns**
 <div class="current">
 
-{% for member in site.currentTeam %}
+{% for member in site.team %}
   {% if member.type == "Intern" %}
 	{% if member.html %}
   	<p><a href="{{ member.html }}">{{ member.name }}</a>, {{ member.join}} - {{member.leave}} (Prev Affiliation: {{ member.prev }})</p>
@@ -76,7 +82,7 @@ nav: true
 ##### **Alumni**
 <div class="alumni">
 
-{% for member in site.currentTeam %}
+{% for member in site.team %}
   {% if member.Alumni %}
   	{% if member.html %}
   	<p><a href="{{ member.html }}">{{ member.name }}</a>, {{ member.join}} - {{member.leave}} (Next: {{ member.future }})</p>

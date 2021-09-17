@@ -99,11 +99,11 @@ collections:
   projects:
     output: true
     permalink: /projects/:path/
-  currentTeam:
+  team:
     output: true
-    permalink: /currentTeam/:path/
+    permalink: /team/:path/
 
-news_limit: 5
+news_limit: 10
 
 # -----------------------------------------------------------------------------
 # Jekyll settings
