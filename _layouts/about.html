@@ -54,6 +54,10 @@ layout: default
       {{ content }}
     </div>
 
+    {% if page.twitter %}
+      {% include twitter.html %}
+    {% endif %}
+
     {% if page.news %}
       {% include news.html %}
     {% endif %}

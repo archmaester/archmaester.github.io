@@ -11,6 +11,7 @@ profile:
   address: >
       <p>Karlovo namesti 13, 121 35, Praha 2, Czech Republic</p>
 
+twitter: true
 news: true  # includes a list of news items
 selected_papers: true # includes a list of papers marked as "selected={true}"
 social: true  # includes social icons at the bottom of the page
@@ -28,10 +29,6 @@ My research is on computer vision with a focus on
 
 See [here](./vacancy) for more details.
 
-
-<div class="twitter-feed" style="width: 500px; height: 500px; overflow-y: scroll;">
-{% twitter https://twitter.com/giotolias maxwidth=500 maxheight=50 overflow=scroll limit=100 %}
-</div>
 
 <!-- Write your biography here. Tell the world about yourself. Link to your favorite [subreddit](http://reddit.com){:target="\_blank"}. You can put a picture in, too. The code is already in, just name your picture `prof_pic.jpg` and put it in the `img/` folder.
 
