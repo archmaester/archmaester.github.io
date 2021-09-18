@@ -37,5 +37,3 @@ Interested candidates should send their CV and transcripts to Giorgos Tolias at 
 ##### **Internship Positions**
 
 Not available
-
-* * *
