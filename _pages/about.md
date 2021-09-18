@@ -8,9 +8,6 @@ profile:
   align: right
   citations: true
   image: prof_pic.jpg
-  address: >
-      <p>Karlovo namesti 13, 121 35, Praha 2, Czech Republic</p>
-
 twitter: true
 news: true  # includes a list of news items
 selected_papers: true # includes a list of papers marked as "selected={true}"

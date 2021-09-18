@@ -17,6 +17,7 @@ a, table.table a {
   &:hover:after :not(.nav-item.dropdown) {
     width: 100%;
   }
+
 }
 
 blockquote {
@@ -213,6 +214,7 @@ blockquote {
 
 .news table th {
   color: var(--global-text-color);
+  font-weight: bold;
 }
 
 // Social (bottom)
