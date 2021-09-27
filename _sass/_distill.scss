@@ -2,6 +2,21 @@
  * Style overrides for distill blog posts.
  ******************************************************************************/
 
+
+d-title {
+  
+  h1, p {
+      font-size: 2rem !important;
+      color: var(--global-hover-color) !important;
+      text-align: center;
+  }
+
+  p {
+      font-size: 1rem !important;
+      color: var(--global-text-color) !important;
+      text-align: center;
+  }
+}
 d-byline {
   border-top-color: $grey-color-light !important;
 }
