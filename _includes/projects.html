@@ -9,7 +9,7 @@
       <img src="{{ project.img | relative_url }}" alt="project thumbnail">
       {% endif %}
       <div class="card-body">
-        <h2 class="card-title text-lowercase">{{ project.title }}</h2>
+        <h2 class="card-title text-lowercase">{{ project.thumbtitle }}</h2>
         <p class="card-text">{{ project.description }}</p>
         <div class="row ml-1 mr-1 p-0">
           {% if project.github %}
@@ -20,7 +20,7 @@
             {% if project.github_stars %}
             <span class="stars" data-toggle="tooltip" title="GitHub Stars">
               <i class="fas fa-star"></i>
-              <span id="{{ project.github_stars }}-stars"></span>
+              <span id="{{ project.github_stars}}-stars"></span>
             </span>
             {% endif %}
           </div>

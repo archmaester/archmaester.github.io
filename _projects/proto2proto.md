@@ -1,15 +1,19 @@
 ---
 layout: distill
-title: Proto2Proto: Can you recognize the car, the way I do?
+thumbtitle: Proto2Proto
+title: "Proto2Proto: Can you recognize the car, the way I do?"
 description: CVPR 2022
 date: 2022-03-28
+importance: 1
+category: research
+img: /assets/img/latest-archi.png
 
 authors:
   - name: Monish Keswani
     url: "archmaester.github.io"
     affiliations:
       name: IIT-H
-  - name: Sriranjani Ramakrishnan
+  - name: Sriranjani R
     url: ""
     affiliations:
       name: IIT-H
