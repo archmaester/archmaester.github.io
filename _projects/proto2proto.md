@@ -10,7 +10,7 @@ img: /assets/img/latest-archi.png
 
 authors:
   - name: Monish Keswani
-    url: "archmaester.github.io"
+    url: "https://archmaester.github.io"
     affiliations:
       name: IIT-H
   - name: Sriranjani R
