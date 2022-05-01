@@ -10,7 +10,9 @@ nav: true
 ##### **Address**
 
 Karlovo namesti 13, 121 35 Praha 2, Czech Republic \
-Office: G3 (building G, room 3)
+Office: G10 (building G, room 10)
 
 ##### **Email**
-A.B@cmp.felk.cvut.cz (replace A by giorgos and B by tolias)
+
+Work: A@fel.cvut.cz (replace A by keswamon) \
+Personal: A.B@gmail.com (replace A by monish and B by keswani01)

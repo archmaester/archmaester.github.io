@@ -3,11 +3,11 @@ layout: page
 permalink: /publications/
 title: publications
 description: 
-years: [2021, 2020, 2019, 2018]
+years: [2022, 2021]
 nav: true
 ---
 
-Visit my [Google Scholar Profile](https://scholar.google.com/citations?user=e765N80AAAAJ&hl=en)
+Visit my [Google Scholar Profile](https://scholar.google.com/citations?user=b8b_eGUAAAAJ&hl=en)
 
 <div class="publications">
 

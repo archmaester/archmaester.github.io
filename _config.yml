@@ -3,10 +3,10 @@
 # -----------------------------------------------------------------------------
 
 title: blank # the website title (if blank, full name will be used instead)
-first_name: Giorgos 
+first_name: Monish 
 middle_name: 
-last_name: Tolias
-email: giorgos [dot] tolias [at] cmp.felk.cvut.cz
+last_name: Keswani
+email: monish [dot] keswani01 [at] gmail.com
 description: > # the ">" symbol means to ignore newlines until "footer_text:"
   A simple, whitespace theme for academics. Based on [*folio](https://github.com/bogoli/-folio) design.
 footer_text: >
@@ -46,11 +46,11 @@ og_image: # The site-wide (default for all links) Open Graph preview image
 # Social integration
 # -----------------------------------------------------------------------------
 
-github_username: gtolias # your GitHub user name
+github_username: archmaester # your GitHub user name
 gitlab_username: # your GitLab user name
-twitter_username: giotolias # your Twitter handle
+twitter_username: archmaester01 # your Twitter handle
 linkedin_username: # your LinkedIn user name
-scholar_userid: e765N80AAAAJ # your Google Scholar ID
+scholar_userid: b8b_eGUAAAAJ # your Google Scholar ID
 orcid_id: # your ORCID ID
 medium_username: # your Medium username
 quora_username: # your Quora username
@@ -96,9 +96,9 @@ collections:
   projects:
     output: true
     permalink: /projects/:path/
-  team:
-    output: true
-    permalink: /team/:path/
+  # team:
+  #   output: true
+  #   permalink: /team/:path/
 
 news_limit: 10
 
@@ -152,8 +152,8 @@ github: [metadata]
 
 scholar:
 
-  last_name: Tolias
-  first_name: [G., Giorgos]
+  last_name: Monish
+  first_name: [K., Monish]
 
   style: apa
   locale: en
