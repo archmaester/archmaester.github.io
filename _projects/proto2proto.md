@@ -1,5 +1,7 @@
 ---
 layout: distill
+url: /
+redirect: /proto2proto
 thumbtitle: Proto2Proto
 title: "Proto2Proto: Can you recognize the car, the way I do?"
 description: CVPR 2022
