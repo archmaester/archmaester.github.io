@@ -14,7 +14,7 @@ selected_papers: true # includes a list of papers marked as "selected={true}"
 social: true  # includes social icons at the bottom of the page
 ---
 
-I am a Researcher at the [Czech Technical University](https://www.cvut.cz/en) in Prague and a member of the [Visual Recognition Group](https://cyber.felk.cvut.cz/research/groups-teams/vrg/) working with [Prof. Giorgos Tolias](https://cmp.felk.cvut.cz/~toliageo/). I will be starting my PhD. in the fall of 2022. Previously, I have worked as a Research Assistant at [Indian Institute of Technology, Hyderabad](https://www.iith.ac.in/) with [Prof. Vineeth N. Balasubramanian](https://people.iith.ac.in/vineethnb/). Before that, I have worked as a Research Assistant at [Indian Institute of Science, Bengaluru](https://www.iisc.ac.in/) with [Prof. Anirban Chakraborty](http://visual-computing.in/wp-content/uploads/2017/08/anirban-chakraborty.html)
+I am a Researcher at the [Czech Technical University](https://www.cvut.cz/en) in Prague and a member of the [Visual Recognition Group](https://cyber.felk.cvut.cz/research/groups-teams/vrg/) working with [Prof. Giorgos Tolias](https://cmp.felk.cvut.cz/~toliageo/). Previously, I have worked as a Research Assistant at [Indian Institute of Technology, Hyderabad](https://www.iith.ac.in/) with [Prof. Vineeth N. Balasubramanian](https://people.iith.ac.in/vineethnb/). Before that, I have worked as a Research Assistant at [Indian Institute of Science, Bengaluru](https://www.iisc.ac.in/) with [Prof. Anirban Chakraborty](http://visual-computing.in/wp-content/uploads/2017/08/anirban-chakraborty.html)
 
 ##### **Research Interests**
 
