@@ -28,19 +28,19 @@ layout: default
           <table class="table table-sm table-border">
             <tr>
               <th scope="row" style="width:40%" >Citations</th>
-              <td>
+              <td id="scholar-citations">
                   {{ site.data.scholar.citations }}
               </td>
             </tr>
             <tr>
               <th scope="row" style="width:40%" >h-index</th>
-              <td>
+              <td id="scholar-hindex">
                   {{ site.data.scholar.h_index }}
               </td>
             </tr>
             <tr>
               <th scope="row" style="width:40%" >i10-index</th>
-              <td>
+              <td id="scholar-i10index">
                   {{ site.data.scholar.i10_index }}
               </td>
             </tr>
@@ -84,3 +84,32 @@ layout: default
   </article>
 
 </div>
+
+{% if page.profile.citations %}
+<script>
+(function() {
+  var scholarId = '{{ site.scholar_userid }}';
+  if (!scholarId) return;
+  var url = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(
+    'https://scholar.google.com/citations?user=' + scholarId + '&hl=en'
+  );
+  fetch(url)
+    .then(function(res) { return res.text(); })
+    .then(function(html) {
+      var parser = new DOMParser();
+      var doc = parser.parseFromString(html, 'text/html');
+      var cells = doc.querySelectorAll('#gsc_rsb_st td.gsc_rsb_std');
+      if (cells.length >= 3) {
+        var el;
+        el = document.getElementById('scholar-citations');
+        if (el) el.textContent = cells[0].textContent;
+        el = document.getElementById('scholar-hindex');
+        if (el) el.textContent = cells[2].textContent;
+        el = document.getElementById('scholar-i10index');
+        if (el) el.textContent = cells[4].textContent;
+      }
+    })
+    .catch(function() { /* keep static fallback values */ });
+})();
+</script>
+{% endif %}
