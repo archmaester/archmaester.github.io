@@ -189,6 +189,24 @@ enable_navbar_social:       true  # enables displaying social links in the
 enable_project_categories:  true   # enables categorization of projects into
                                    # multiple categories
 enable_medium_zoom:         true   # enables image zoom feature (as on medium.com)
+enable_goatcounter:         true   # enables GoatCounter analytics
+enable_giscus:              false  # enables Giscus comments & reactions
+
+# GoatCounter Analytics
+goatcounter_site: archmaester  # replace with actual site code from goatcounter.com
+
+# Giscus Comments & Reactions
+giscus:
+  repo: archmaester/archmaester.github.io
+  repo_id: REPLACE_ME
+  category: Blog Comments
+  category_id: REPLACE_ME
+  mapping: pathname
+  reactions_enabled: 1
+  emit_metadata: 0
+  input_position: top
+  theme: preferred_color_scheme
+  lang: en
 
 # -----------------------------------------------------------------------------
 # Library versions
