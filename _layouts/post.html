@@ -10,14 +10,79 @@ layout: default
 
 <div class="post">
 
+  <a href="{{ '/blog/' | relative_url }}" class="back-to-blog">&larr; Back to blog</a>
+
   <header class="post-header">
     <h1 class="post-title">{{ page.title }}</h1>
-    <p class="post-meta">{{ page.date | date: "%B %-d, %Y" }}{% if page.author %} • {{ page.author }}{% endif %}{% if page.meta %} • {{ page.meta }}{% endif %}</p>
+    {% assign words = content | number_of_words %}
+    {% assign minutes = words | divided_by: 250 %}
+    {% if minutes < 1 %}{% assign minutes = 1 %}{% endif %}
+    <p class="post-meta">
+      {{ page.date | date: "%B %-d, %Y" }}
+      {% if page.author %} &middot; {{ page.author }}{% endif %}
+      <span class="reading-time">&middot; {{ minutes }} min read</span>
+    </p>
+    {% if page.description %}
+    <p class="post-description-text">{{ page.description }}</p>
+    {% endif %}
+    {% if page.tags.size > 0 %}
+    <div class="post-tags">
+      {% for tag in page.tags %}
+      <span class="tag-badge">{{ tag }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
   </header>
+
+  {% comment %} Auto-generate table of contents {% endcomment %}
+  {% assign headings = content | split: '</h2>' %}
+  {% assign toc_items = "" %}
+  {% for h in headings %}
+    {% if h contains '<h2' %}
+      {% assign h2_part = h | split: '<h2' | last %}
+      {% assign toc_id = h2_part | split: 'id="' | last | split: '"' | first %}
+      {% assign toc_text = h2_part | split: '>' | last %}
+      {% assign toc_items = toc_items | append: toc_id | append: "|" | append: toc_text | append: "||" %}
+    {% endif %}
+  {% endfor %}
+  {% assign toc_entries = toc_items | split: "||" %}
+  {% if toc_entries.size > 2 %}
+  <nav class="toc-wrapper">
+    <div class="toc-title">Table of Contents</div>
+    <ul>
+      {% for entry in toc_entries %}
+        {% assign parts = entry | split: "|" %}
+        {% if parts.size >= 2 %}
+          <li><a href="#{{ parts[0] }}">{{ parts[1] | strip_html }}</a></li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </nav>
+  {% endif %}
 
   <article class="post-content">
     {{ content }}
   </article>
+
+  {% comment %} Prev/Next navigation {% endcomment %}
+  {% assign prev_post = page.previous %}
+  {% assign next_post = page.next %}
+  {% if prev_post or next_post %}
+  <nav class="post-nav">
+    {% if prev_post %}
+    <div class="post-nav-item prev">
+      <span class="nav-label">&larr; Previous</span>
+      <a href="{{ prev_post.url | relative_url }}">{{ prev_post.title }}</a>
+    </div>
+    {% endif %}
+    {% if next_post %}
+    <div class="post-nav-item next">
+      <span class="nav-label">Next &rarr;</span>
+      <a href="{{ next_post.url | relative_url }}">{{ next_post.title }}</a>
+    </div>
+    {% endif %}
+  </nav>
+  {% endif %}
 
   {% if site.disqus_shortname and page.comments %}
     <div id="disqus_thread"></div>
