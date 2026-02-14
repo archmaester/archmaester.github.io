@@ -96,9 +96,8 @@ layout: default
 (function() {
   var scholarId = '{{ site.scholar_userid }}';
   if (!scholarId) return;
-  var url = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(
-    'https://scholar.google.com/citations?user=' + scholarId + '&hl=en'
-  );
+  var url = 'https://api.codetabs.com/v1/proxy?quest=' +
+    'https://scholar.google.com/citations?user=' + scholarId + '%26hl=en';
   fetch(url)
     .then(function(res) { return res.text(); })
     .then(function(html) {
