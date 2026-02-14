@@ -15,6 +15,9 @@ module Jekyll
         tbl_data[cell_data[0].downcase.sub('-', '_')] = cell_data[1].to_i
       end
       site.data['scholar'] = tbl_data
+    rescue StandardError => e
+      Jekyll.logger.warn "ScholarStats:", "Failed to fetch stats: #{e.message}"
+      site.data['scholar'] ||= { 'id' => SCHOLAR_ID, 'citations' => '', 'h_index' => '', 'i10_index' => '' }
     end
   end
 end
