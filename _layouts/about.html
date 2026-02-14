@@ -13,7 +13,7 @@ layout: default
 
   <article>
     {% if page.profile %}
-    <div class="profile float-{% if page.profile.align == 'left' %}left{% else %}right{% endif %}">
+    <div class="profile float-{% if page.profile.align == 'left' %}left{% else %}right{% endif %} fade-in-section">
       {% if page.profile.image %}
         <img class="img-fluid z-depth-1 rounded" src="{{ page.profile.image | prepend: '/assets/img/' | relative_url }}">
       {% endif %}
@@ -51,34 +51,40 @@ layout: default
     </div>
     {% endif %}
 
-    <h1 class="post-title">
-     {% if site.title == "blank" %}<span class="font-weight-bold">{{ site.first_name }}</span> {{ site.middle_name }} {{ site.last_name }}{% else %}{{ site.title }}{% endif %}
-    </h1>
-     <p class="desc">{{ page.description }}</p>
+    <div class="fade-in-section" style="animation-delay: 0.1s;">
+      <h1 class="post-title">
+       {% if site.title == "blank" %}<span class="font-weight-bold">{{ site.first_name }}</span> {{ site.middle_name }} {{ site.last_name }}{% else %}{{ site.title }}{% endif %}
+      </h1>
+       <p class="desc">{{ page.description }}</p>
 
-    <div class="clearfix">
-      {{ content }}
+      <div class="clearfix">
+        {{ content }}
+      </div>
     </div>
 
-    <hr class="navbar">
     {% if page.twitter %}
+    <div class="about-section fade-in-section" style="animation-delay: 0.2s;">
       {% include twitter.html %}
+    </div>
     {% endif %}
-    <hr class="navbar">
     {% if page.news %}
+    <div class="about-section fade-in-section" style="animation-delay: 0.3s;">
       {% include news.html %}
+    </div>
     {% endif %}
-    <hr class="navbar">
     {% if page.selected_papers %}
+    <div class="about-section fade-in-section" style="animation-delay: 0.4s;">
       {% include selected_papers.html %}
+    </div>
     {% endif %}
-    <hr class="navbar">
     {% if page.social %}
-    <div class="social">
-      <div class="contact-icons">
-        {% include social.html %}
+    <div class="about-section fade-in-section" style="animation-delay: 0.5s;">
+      <div class="social">
+        <div class="contact-icons">
+          {% include social.html %}
+        </div>
+        <div class="contact-note">{{ site.contact_note }}</div>
       </div>
-      <div class="contact-note">{{ site.contact_note }}</div>
     </div>
     {% endif %}
   </article>
