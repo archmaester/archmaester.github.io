@@ -14,7 +14,6 @@ Why does this work? How are such networks trained? Can distillation help? And wh
 
 This post walks through the full story --- from floating-point CNN training to INT8 weight deployment --- with practical intuition and engineering insight.
 
----
 
 ## 1. Why Quantization Exists
 
@@ -38,7 +37,6 @@ The surprising part?
 
 To understand why, we need to examine how CNN weights behave.
 
----
 
 ## 2. What Is the Typical Range of CNN Weights?
 
@@ -64,7 +62,6 @@ Why so small?
 
 This small range is the reason INT8 works.
 
----
 
 ## 3. What INT8 Actually Represents
 
@@ -85,7 +82,6 @@ For **symmetric quantization** (zero_point = 0), mapping weights in [-0.1, +0.1]
 
 Each INT8 step represents less than 0.001 in the original FP32 space. That is far finer than what the network needs to preserve its learned representations.
 
----
 
 ## 4. Post-Training Quantization (PTQ)
 
@@ -113,7 +109,6 @@ The simplest approach: train in FP32, quantize afterwards.
 - Lightweight models where every bit of precision counts
 - Layers with high dynamic range or outlier activations
 
----
 
 ## 5. Quantization-Aware Training (QAT)
 
@@ -135,7 +130,6 @@ The model adapts its weight distribution during training. It learns to:
 
 QAT typically recovers **most or all** of the accuracy lost during PTQ, even for sensitive architectures like MobileNet.
 
----
 
 ## 6. Can Knowledge Distillation Help?
 
@@ -160,7 +154,6 @@ Why this helps quantized models:
 
 This combination --- QAT + distillation --- is the gold standard for deploying lightweight quantized models on edge hardware.
 
----
 
 ## 7. The Full Pipeline
 
@@ -190,7 +183,6 @@ Putting it all together, here is a typical production pipeline:
 - Validate on-device accuracy and latency
 - Ship it
 
----
 
 ## 8. Common Pitfalls
 
@@ -202,7 +194,6 @@ A few things that catch practitioners off guard:
 - **Calibrating on unrepresentative data.** Your calibration set must reflect real deployment conditions.
 - **Expecting miracles from 4-bit.** INT8 is mature; INT4 and lower still require careful architecture-specific tuning.
 
----
 
 ## Final Takeaway
 

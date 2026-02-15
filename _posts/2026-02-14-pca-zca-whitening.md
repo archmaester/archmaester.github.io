@@ -18,7 +18,6 @@ Whitening (or sphering) is a preprocessing transformation that converts a vector
 
 <img src="/assets/img/pca-whitening-diagram.svg" alt="The Whitening Pipeline: from correlated data through rotation and scaling to spherical (whitened) data" style="width:100%; max-width:900px; margin: 1.5em auto; display:block;">
 
----
 
 ## 2. The Core Math: Eigenvalue Decomposition (EVD)
 
@@ -36,7 +35,6 @@ $$\Sigma = U \Lambda U^{\top}$$
 
 > Think of it as: **rotate, scale, rotate back**. The covariance matrix encodes both the shape and the orientation of your data cloud.
 
----
 
 ## 3. The PCA Whitening Process
 
@@ -101,7 +99,6 @@ $$X_{PCA\text{-}white} = W_{PCA} \cdot X_{centered} = \Lambda^{-1/2} U^{\top} X_
 3. This gives us: $\text{Cov}(\Lambda^{-1/2} U^{\top} X) = \Lambda^{-1/2} \Lambda \Lambda^{-1/2} = I$.
 </div>
 
----
 
 ## 4. ZCA Whitening (Zero-Phase Component Analysis)
 
@@ -119,7 +116,6 @@ $$X_{ZCA\text{-}white} = U \Lambda^{-1/2} U^{\top} X_{centered}$$
 | **Minimal Distortion** | It stays as close to the original data as possible. |
 | **Structure Preservation** | Excellent for images --- doesn't scramble pixels into abstract components. |
 
----
 
 ## 5. Summary Table
 
@@ -130,7 +126,6 @@ $$X_{ZCA\text{-}white} = U \Lambda^{-1/2} U^{\top} X_{centered}$$
 | **PCA Whitening** | $\Lambda^{-1/2} U^{\top} X$ | Decorrelates + Unit Variance. |
 | **ZCA Whitening** | $U \Lambda^{-1/2} U^{\top} X$ | Decorrelates + Unit Variance + Original Orientation. |
 
----
 
 ## 6. Frequently Asked Questions
 

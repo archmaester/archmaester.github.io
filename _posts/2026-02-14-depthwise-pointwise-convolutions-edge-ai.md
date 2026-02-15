@@ -17,7 +17,6 @@ power consumption.
 Depthwise and pointwise convolutions are key techniques that make this
 possible.
 
----
 
 ## Standard Convolution (Baseline)
 
@@ -32,7 +31,6 @@ Each output channel mixes spatial information and cross-channel
 information simultaneously.
 This is powerful but computationally expensive.
 
----
 
 ## Depthwise Convolution
 
@@ -54,7 +52,6 @@ C_out is large.
 Depthwise convolution performs **spatial filtering only**, independently
 per channel.
 
----
 
 ## Pointwise Convolution (1×1 Convolution)
 
@@ -66,7 +63,6 @@ Pointwise convolution uses a 1 × 1 kernel:
 
 This is responsible for **channel mixing**.
 
----
 
 ## Depthwise Separable Convolution
 
@@ -85,7 +81,6 @@ Compared to:
 
 This results in large computational savings.
 
----
 
 ## Why Depthwise Convolutions Can Be Problematic
 
@@ -116,7 +111,6 @@ Depthwise layers often degrade first during INT8 quantization because:
 Quantization-aware training (QAT) is often required for stable
 deployment.
 
----
 
 ## Why They Are Useful in Edge AI
 
@@ -156,7 +150,6 @@ Architectures such as MobileNet-style networks rely heavily on:
 Without separable convolutions, real-time inference on edge devices
 would be impractical.
 
----
 
 ## Design Guidelines for Edge AI
 
@@ -168,7 +161,6 @@ When using depthwise convolutions:
 - Use 1×1 layers for strong channel mixing
 - Avoid extremely narrow channels
 
----
 
 ## Final Takeaway
 
