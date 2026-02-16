@@ -1,0 +1,925 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://archmaester.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://archmaester.github.io/" rel="alternate" type="text/html" /><updated>2026-02-16T09:29:47+00:00</updated><id>https://archmaester.github.io/feed.xml</id><title type="html">blank</title><subtitle>A simple, whitespace theme for academics. Based on [*folio](https://github.com/bogoli/-folio) design.
+</subtitle><entry><title type="html">Bias-Variance Tradeoff: From Theory to Ensemble Methods</title><link href="https://archmaester.github.io/blog/2026/bias-variance-tradeoff/" rel="alternate" type="text/html" title="Bias-Variance Tradeoff: From Theory to Ensemble Methods" /><published>2026-02-15T00:00:00+00:00</published><updated>2026-02-15T00:00:00+00:00</updated><id>https://archmaester.github.io/blog/2026/bias-variance-tradeoff</id><content type="html" xml:base="https://archmaester.github.io/blog/2026/bias-variance-tradeoff/"><![CDATA[<h2 id="1-the-core-problem-bias-vs-variance">1. The Core Problem: Bias vs. Variance</h2>
+
+<p>At the heart of machine learning is the <strong>Bias-Variance Tradeoff</strong>. This is the challenge of creating a model that is both accurate and reliable.</p>
+
+<ul>
+  <li><strong>Bias:</strong> This is the error from your model being <em>too simple</em>. A high-bias model “underfits” the data. It makes strong assumptions that aren’t true, so it’s inaccurate on <em>both</em> the data it was trained on and new data.</li>
+  <li>
+    <p><strong>Analogy:</strong> An archer whose bow is misaligned. All their shots consistently hit the same wrong spot (e.g., low and to the left). The model is consistently wrong.</p>
+  </li>
+  <li><strong>Variance:</strong> This is the error from your model being <em>too complex</em>. A high-variance model “overfits” the data. It learns the training data perfectly, including all its noise and random quirks. When it sees new data, it performs poorly because the new data doesn’t have the <em>exact same</em> quirks.</li>
+  <li><strong>Analogy:</strong> An archer with an unsteady hand. Their shots are scattered all over the target. On average, they might be centered on the bullseye, but any single shot is unreliable.</li>
+</ul>
+
+<h3 id="the-math">The Math</h3>
+
+<p>The Bias-Variance Tradeoff is a way to decompose the total expected error of a model.</p>
+
+<p>Let’s define our terms:</p>
+
+<ul>
+  <li>$y$: The true value we are trying to predict.</li>
+  <li>$x$: Our input data.</li>
+  <li>$f(x)$: The true, unknown function that perfectly describes the relationship between $x$ and $y$.</li>
+  <li>$\hat{f}(x)$: Our machine learning model, which is an <em>estimate</em> of $f(x)$.</li>
+  <li>$\epsilon$: Random, unavoidable noise in the data, with a mean of 0 and variance $\sigma^2$. So, $y = f(x) + \epsilon$.</li>
+</ul>
+
+<p>The most common way to measure a model’s error is the <strong>Mean Squared Error (MSE)</strong>. We want to find the <em>expected</em> MSE at a specific data point $x$:</p>
+
+<div class="formula-box">
+$$\text{E}\!\left[(y - \hat{f}(x))^2\right]$$
+</div>
+
+<p>This single equation can be broken down (decomposed) into three distinct parts:</p>
+
+<div class="formula-box">
+$$\text{E}\!\left[(y - \hat{f}(x))^2\right] = \text{Bias}^2 + \text{Variance} + \text{Irreducible Error}$$
+</div>
+
+<p>This looks complex, so let’s break down each piece.</p>
+
+<h3 id="1-bias-squared">1. Bias (Squared)</h3>
+
+<ul>
+  <li><strong>Equation:</strong></li>
+</ul>
+
+<div class="formula-box">
+$$\text{Bias}^2 = \left(\text{E}[\hat{f}(x)] - f(x)\right)^2$$
+</div>
+
+<ul>
+  <li><strong>What it means:</strong>
+    <ul>
+      <li>$\text{E}[\hat{f}(x)]$ is the <em>average prediction</em> your model would make at point $x$ if you trained it many times on different samples of the data.</li>
+      <li>This term measures the difference between your model’s <em>average prediction</em> and the <em>true value</em> $f(x)$.</li>
+      <li><strong>High Bias (Underfitting):</strong> Your model, on average, is simply wrong. It’s too simple to capture the true pattern. Think of a linear model trying to fit a sine wave.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="2-variance">2. Variance</h3>
+
+<ul>
+  <li><strong>Equation:</strong></li>
+</ul>
+
+<div class="formula-box">
+$$\text{Variance} = \text{E}\!\left[(\hat{f}(x) - \text{E}[\hat{f}(x)])^2\right]$$
+</div>
+
+<ul>
+  <li><strong>What it means:</strong>
+    <ul>
+      <li>This measures how much your model’s specific prediction $\hat{f}(x)$ <em>scatters</em> or <em>varies</em> around its own average prediction $\text{E}[\hat{f}(x)]$.</li>
+      <li><strong>High Variance (Overfitting):</strong> Your model is unstable. It’s so complex that it changes drastically based on the <em>specific</em> training data it sees, learning the noise instead of the signal.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="3-irreducible-error">3. Irreducible Error</h3>
+
+<ul>
+  <li><strong>Equation:</strong></li>
+</ul>
+
+<div class="formula-box">
+$$\text{Irreducible Error} = \sigma^2$$
+</div>
+
+<ul>
+  <li><strong>What it means:</strong>
+    <ul>
+      <li>This is the variance of the noise $\epsilon$ that’s inherent in the data itself.</li>
+      <li>This error is unavoidable. No model, no matter how perfect, can get rid of it. It’s the baseline level of “fuzziness” in the problem.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>So, the full equation is:</p>
+
+<div class="formula-box">
+$$\text{E}\!\left[(y - \hat{f}(x))^2\right] = \left(\text{E}[\hat{f}(x)] - f(x)\right)^2 + \text{E}\!\left[(\hat{f}(x) - \text{E}[\hat{f}(x)])^2\right] + \sigma^2$$
+</div>
+
+<p>The “tradeoff” is that trying to decrease $\text{Bias}^2$ (e.g., by making your model more complex) often <em>increases</em> $\text{Variance}$, and vice-versa.</p>
+
+<p><strong>The Tradeoff:</strong></p>
+
+<ul>
+  <li>A simple model (like linear regression) has <strong>high bias</strong> (it can’t capture complex patterns) and <strong>low variance</strong> (it gives consistent results).</li>
+  <li>A complex model (like a very deep decision tree) has <strong>low bias</strong> (it can fit <em>any</em> pattern) and <strong>high variance</strong> (it’s unstable and changes wildly with new data).</li>
+</ul>
+
+<p>The goal is to find a model with <strong>low bias</strong> and <strong>low variance</strong>. This is where ensemble methods come in.</p>
+
+<h2 id="2-the-building-block-decision-trees">2. The Building Block: Decision Trees</h2>
+
+<p>A <strong>Decision Tree</strong> makes predictions by asking a series of “if/then” questions based on the features.</p>
+
+<ul>
+  <li><strong>How it works:</strong> It splits the data at each “node” to create “branches.” For example: “Is <code class="language-plaintext highlighter-rouge">age</code> &gt; 30?” If yes, go left; if no, go right. Then, “Is <code class="language-plaintext highlighter-rouge">salary</code> &gt; $50k?” and so on, until it reaches a “leaf” node with a final prediction (e.g., “Will Buy”).</li>
+  <li><strong>The Problem:</strong> A single, fully-grown decision tree is a classic <strong>high-variance, low-bias</strong> model. It will perfectly memorize the training data (overfit) and won’t generalize well to new data.</li>
+</ul>
+
+<h2 id="3-the-ensemble-methods-bagging--boosting">3. The Ensemble Methods: Bagging &amp; Boosting</h2>
+
+<p>Instead of relying on one “unstable” model (like a deep decision tree), we can combine <em>many</em> models. This is called an <strong>ensemble</strong>. Bagging and Boosting are the two main ways to do this.</p>
+
+<h3 id="bagging-eg-random-forest">Bagging (e.g., Random Forest)</h3>
+
+<p><strong>Bagging</strong> (short for <strong>B</strong>ootstrap <strong>Agg</strong>regating) is a technique that <em>attacks the high-variance problem</em>.</p>
+
+<ol>
+  <li><strong>Bootstrap:</strong> Create many (e.g., 500) different random “bags” (subsets) of your training data. The data is sampled <em>with replacement</em>, so some data points may appear multiple times in one bag, and others not at all.</li>
+  <li><strong>Aggregate:</strong> Train one <em>deep, high-variance</em> decision tree on each bag of data.</li>
+  <li><strong>Vote:</strong> To make a new prediction, let all 500 trees “vote.” The majority vote (for classification) or the average (for regression) is the final answer.</li>
+</ol>
+
+<p><strong>Why it works:</strong> You have 500 different “overfitted” models. Each one is “unstable” and wrong in its own unique way. By averaging their predictions, the errors cancel out, resulting in a single, stable, and powerful model with <strong>low variance</strong>.</p>
+
+<div class="callout callout-key">
+  <p><strong>The most famous example is the Random Forest.</strong> It’s a Bagging model using Decision Trees.</p>
+</div>
+
+<h3 id="boosting">Boosting</h3>
+
+<p><strong>Boosting</strong> is a technique that <em>attacks the high-bias problem</em>. It builds a model <em>sequentially</em>, where each new model <em>learns from the mistakes</em> of the previous ones.</p>
+
+<ol>
+  <li><strong>Start:</strong> Train a very simple, “weak” model (e.g., a tiny decision tree with only one split, called a “stump”). This model is high-bias and only slightly better than random guessing.</li>
+  <li><strong>Learn from Mistakes:</strong> Identify all the data points the first model got <em>wrong</em>.</li>
+  <li><strong>Build Model 2:</strong> Train a <em>new</em> weak model, but this time, tell it to pay <em>special attention</em> to the data points the first model failed on (by giving them more “weight”).</li>
+  <li><strong>Repeat:</strong> Repeat this process 100s or 1000s of times. Each new model is an “expert” on the data that the <em>entire</em> ensemble (all previous models) still gets wrong.</li>
+  <li><strong>Final Prediction:</strong> The final prediction is a weighted sum of all the weak models.</li>
+</ol>
+
+<p><strong>Why it works:</strong> You start with a high-bias model and iteratively “boost” its performance by adding new models that fix its errors. The result is a single, strong, <strong>low-bias</strong> model.</p>
+
+<h2 id="4-the-advanced-algorithms">4. The Advanced Algorithms</h2>
+
+<p>These are specific, highly optimized implementations of boosting.</p>
+
+<h3 id="gbm-gradient-boosting-machine">GBM (Gradient Boosting Machine)</h3>
+
+<p>This is the generalized, “mathematical” version of Boosting. Instead of just “re-weighting” the mistakes, it uses a more powerful technique.</p>
+
+<ul>
+  <li><strong>How it works:</strong> After the first model makes its predictions, the GBM calculates the “residual errors” (the difference between the true value and the predicted value).</li>
+  <li>The <em>second</em> model is then trained to <strong>predict those errors</strong>.</li>
+  <li>You add this “error-correcting” prediction to the first model’s prediction.</li>
+  <li>The <em>third</em> model is trained to predict the <em>remaining</em> errors, and so on.</li>
+  <li>It uses <strong>gradient descent</strong> (a common optimization algorithm) to find the best way to add each new model to minimize the overall error.</li>
+</ul>
+
+<h3 id="xgboost-extreme-gradient-boosting">XGBoost (Extreme Gradient Boosting)</h3>
+
+<p><strong>XGBoost</strong> is, for all practical purposes, a <em>better, faster, and more robust</em> version of GBM. It’s essentially GBM “on steroids.”</p>
+
+<p>It was created to be highly efficient and to win machine learning competitions. It improves on GBM in several key ways:</p>
+
+<ol>
+  <li><strong>Regularization (L1 &amp; L2):</strong> It has built-in penalties for model complexity, which <strong>fights overfitting</strong> (a common problem for boosting).</li>
+  <li><strong>Parallel Processing:</strong> It’s designed from the ground up to be “parallelized,” meaning it can use all the cores of your CPU to build trees much faster.</li>
+  <li><strong>Smarter Tree Pruning:</strong> It has a more advanced way of “pruning” (simplifying) its trees as it builds them.</li>
+  <li><strong>Handles Missing Data:</strong> It has a built-in, very clever way to handle <code class="language-plaintext highlighter-rouge">NaN</code> (missing) values in your data automatically.</li>
+</ol>]]></content><author><name></name></author><category term="machine-learning" /><category term="ensemble-methods" /><category term="decision-trees" /><summary type="html"><![CDATA[A deep dive into the bias-variance decomposition, decision trees, bagging, boosting, and XGBoost — with clear math and intuition.]]></summary></entry><entry><title type="html">Depthwise and Pointwise Convolutions: A Practical Guide for Edge AI</title><link href="https://archmaester.github.io/blog/2026/depthwise-pointwise-convolutions-edge-ai/" rel="alternate" type="text/html" title="Depthwise and Pointwise Convolutions: A Practical Guide for Edge AI" /><published>2026-02-14T00:00:00+00:00</published><updated>2026-02-14T00:00:00+00:00</updated><id>https://archmaester.github.io/blog/2026/depthwise-pointwise-convolutions-edge-ai</id><content type="html" xml:base="https://archmaester.github.io/blog/2026/depthwise-pointwise-convolutions-edge-ai/"><![CDATA[<h2 id="introduction">Introduction</h2>
+
+<p>Modern convolutional neural networks (CNNs) were originally designed for
+GPUs with abundant compute and memory. However, when deploying models on
+edge devices — such as mobile phones, embedded systems, and IoT
+hardware — we must dramatically reduce computation, memory usage, and
+power consumption.</p>
+
+<p>Depthwise and pointwise convolutions are key techniques that make this
+possible.</p>
+
+<h2 id="standard-convolution-baseline">Standard Convolution (Baseline)</h2>
+
+<p>In a standard convolution:</p>
+
+<ul>
+  <li>Input shape: H × W × C_in</li>
+  <li>Output shape: H × W × C_out</li>
+  <li>Kernel shape: K × K × C_in</li>
+  <li>Parameters: K² × C_in × C_out</li>
+</ul>
+
+<p>Each output channel mixes spatial information and cross-channel
+information simultaneously.
+This is powerful but computationally expensive.</p>
+
+<h2 id="depthwise-convolution">Depthwise Convolution</h2>
+
+<p>Depthwise convolution splits the operation by channel.</p>
+
+<ul>
+  <li>Each input channel has its own K × K filter</li>
+  <li>No cross-channel mixing occurs</li>
+  <li>Output channels = input channels</li>
+</ul>
+
+<p>Parameters:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>K² × C_in
+</code></pre></div></div>
+
+<p>Compared to standard convolution, this is dramatically cheaper when
+C_out is large.</p>
+
+<h3 id="key-property">Key Property</h3>
+
+<p>Depthwise convolution performs <strong>spatial filtering only</strong>, independently
+per channel.</p>
+
+<h2 id="pointwise-convolution-11-convolution">Pointwise Convolution (1×1 Convolution)</h2>
+
+<p>Pointwise convolution uses a 1 × 1 kernel:</p>
+
+<ul>
+  <li>Operates across channels</li>
+  <li>Mixes channel information</li>
+  <li>Parameters: C_in × C_out</li>
+</ul>
+
+<p>This is responsible for <strong>channel mixing</strong>.</p>
+
+<h2 id="depthwise-separable-convolution">Depthwise Separable Convolution</h2>
+
+<p>A full standard convolution can be approximated by:</p>
+
+<ol>
+  <li>Depthwise convolution (spatial filtering)</li>
+  <li>Pointwise convolution (channel mixing)</li>
+</ol>
+
+<p>Total parameters:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>K² × C_in + C_in × C_out
+</code></pre></div></div>
+
+<p>Compared to:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>K² × C_in × C_out
+</code></pre></div></div>
+
+<p>This results in large computational savings.</p>
+
+<h2 id="why-depthwise-convolutions-can-be-problematic">Why Depthwise Convolutions Can Be Problematic</h2>
+
+<p>While efficient, depthwise convolutions introduce several challenges:</p>
+
+<h3 id="1-no-channel-averaging">1. No Channel Averaging</h3>
+
+<p>In standard convolution, signals from many channels combine.
+In depthwise convolution, each channel is processed independently.</p>
+
+<p>This means:</p>
+<ul>
+  <li>Less noise averaging</li>
+  <li>Higher sensitivity to quantization error</li>
+</ul>
+
+<h3 id="2-lower-representational-power">2. Lower Representational Power</h3>
+
+<p>Standard convolution jointly learns spatial + channel relationships.
+Depthwise separates them, which can reduce expressiveness.</p>
+
+<h3 id="3-quantization-sensitivity">3. Quantization Sensitivity</h3>
+
+<p>Depthwise layers often degrade first during INT8 quantization because:</p>
+
+<ul>
+  <li>Small accumulation size (only K² terms)</li>
+  <li>No cross-channel error smoothing</li>
+  <li>Per-channel scale sensitivity</li>
+</ul>
+
+<p>Quantization-aware training (QAT) is often required for stable
+deployment.</p>
+
+<h2 id="why-they-are-useful-in-edge-ai">Why They Are Useful in Edge AI</h2>
+
+<p>Despite limitations, depthwise and pointwise convolutions are critical
+for Edge AI.</p>
+
+<h3 id="1-massive-reduction-in-flops">1. Massive Reduction in FLOPs</h3>
+
+<p>Example (K=3, C_in=256, C_out=256):</p>
+
+<p>Standard: 3² × 256 × 256 = 589,824 parameters</p>
+
+<p>Depthwise separable: 3² × 256 + 256 × 256 = 67,840 parameters</p>
+
+<p>Nearly 9× reduction.</p>
+
+<h3 id="2-lower-memory-bandwidth">2. Lower Memory Bandwidth</h3>
+
+<p>Edge devices are often memory-bound, not compute-bound.
+Fewer parameters → fewer memory accesses → lower power usage.</p>
+
+<h3 id="3-better-latency-on-mobile-hardware">3. Better Latency on Mobile Hardware</h3>
+
+<p>Modern mobile accelerators are optimized for:</p>
+<ul>
+  <li>3×3 depthwise</li>
+  <li>1×1 convolutions</li>
+</ul>
+
+<p>This makes them ideal building blocks for mobile CNNs.</p>
+
+<h3 id="4-enabling-compact-architectures">4. Enabling Compact Architectures</h3>
+
+<p>Architectures such as MobileNet-style networks rely heavily on:</p>
+<ul>
+  <li>Depthwise convolution</li>
+  <li>1×1 expansion layers</li>
+  <li>Inverted residual blocks</li>
+</ul>
+
+<p>Without separable convolutions, real-time inference on edge devices
+would be impractical.</p>
+
+<h2 id="design-guidelines-for-edge-ai">Design Guidelines for Edge AI</h2>
+
+<p>When using depthwise convolutions:</p>
+
+<ul>
+  <li>Use per-channel quantization</li>
+  <li>Prefer QAT over PTQ</li>
+  <li>Downsample early to reduce activation memory</li>
+  <li>Use 1×1 layers for strong channel mixing</li>
+  <li>Avoid extremely narrow channels</li>
+</ul>
+
+<h2 id="final-takeaway">Final Takeaway</h2>
+
+<p>Depthwise convolutions trade off representational power for efficiency.
+Pointwise convolutions restore channel interaction.</p>
+
+<p>Together, they enable lightweight CNNs suitable for edge deployment.</p>
+
+<p>They are not universally better than standard convolutions — but for
+Edge AI, they are often the difference between feasible and impossible
+deployment.</p>]]></content><author><name></name></author><category term="edge-ai" /><category term="deep-learning" /><category term="convolutions" /><summary type="html"><![CDATA[How depthwise and pointwise convolutions enable efficient CNN deployment on edge devices.]]></summary></entry><entry><title type="html">PCA and ZCA Whitening: A Comprehensive Study Guide</title><link href="https://archmaester.github.io/blog/2026/pca-zca-whitening/" rel="alternate" type="text/html" title="PCA and ZCA Whitening: A Comprehensive Study Guide" /><published>2026-02-14T00:00:00+00:00</published><updated>2026-02-14T00:00:00+00:00</updated><id>https://archmaester.github.io/blog/2026/pca-zca-whitening</id><content type="html" xml:base="https://archmaester.github.io/blog/2026/pca-zca-whitening/"><![CDATA[<h2 id="1-introduction-to-whitening">1. Introduction to Whitening</h2>
+
+<p>Whitening (or sphering) is a preprocessing transformation that converts a vector of random variables with a known covariance matrix into a new vector whose covariance is the <strong>Identity Matrix</strong> ($I$).</p>
+
+<div class="callout callout-key">
+  <p><strong>Two goals of whitening:</strong></p>
+  <ul>
+    <li><strong>Decorrelation</strong> — all features become linearly independent.</li>
+    <li><strong>Unit Variance</strong> — every feature is scaled to have a variance of 1.</li>
+  </ul>
+</div>
+
+<p><img src="/assets/img/pca-whitening-diagram.svg" alt="The Whitening Pipeline: from correlated data through rotation and scaling to spherical (whitened) data" style="width:100%; max-width:900px; margin: 1.5em auto; display:block;" /></p>
+
+<h2 id="2-the-core-math-eigenvalue-decomposition-evd">2. The Core Math: Eigenvalue Decomposition (EVD)</h2>
+
+<p>The foundation of whitening is the decomposition of the Covariance Matrix ($\Sigma$):</p>
+
+<div class="formula-box">
+$$\Sigma = U \Lambda U^{\top}$$
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Symbol</th>
+      <th style="text-align: left">Meaning</th>
+      <th style="text-align: left">Geometric Role</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">$U$</td>
+      <td style="text-align: left">Eigenvector matrix</td>
+      <td style="text-align: left">Rotation</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">$\Lambda$</td>
+      <td style="text-align: left">Diagonal eigenvalue matrix</td>
+      <td style="text-align: left">Variance along principal axes</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">$U^{\top}$</td>
+      <td style="text-align: left">Transpose of $U$</td>
+      <td style="text-align: left">Inverse rotation</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote>
+  <p>Think of it as: <strong>rotate, scale, rotate back</strong>. The covariance matrix encodes both the shape and the orientation of your data cloud.</p>
+</blockquote>
+
+<h2 id="3-the-pca-whitening-process">3. The PCA Whitening Process</h2>
+
+<p>PCA Whitening rotates the data into the principal component space and then rescales it.</p>
+
+<div class="formula-box">
+$$X_{PCA\text{-}white} = \Lambda^{-1/2} U^{\top} X_{centered}$$
+</div>
+
+<h3 id="steps-for-pca-whitening">Steps for PCA Whitening</h3>
+
+<p>Given a dataset $X$ (where each column is a feature/dimension and each row is a sample), here are the steps to compute the PCA whitened data $X_{PCA\text{-}white}$:</p>
+
+<h4 id="step-1-zero-mean-the-data">Step 1: Zero-Mean the Data</h4>
+
+<p>Subtract the mean of each feature (column) to center the data around the origin.</p>
+
+\[X_{centered} = X - \mu\]
+
+<p>where $\mu$ is the mean vector of the features in $X$.</p>
+
+<h4 id="step-2-compute-the-covariance-matrix-sigma">Step 2: Compute the Covariance Matrix ($\Sigma$)</h4>
+
+<p>Calculate the empirical covariance matrix of the centered data:</p>
+
+\[\Sigma = \frac{1}{N} X_{centered}^{\top} X_{centered}\]
+
+<p>where $N$ is the number of samples (rows).</p>
+
+<h4 id="step-3-eigendecomposition-of-sigma">Step 3: Eigendecomposition of $\Sigma$</h4>
+
+<p>Compute the eigendecomposition of the symmetric covariance matrix $\Sigma$:</p>
+
+\[\Sigma = U \Lambda U^{\top}\]
+
+<ul>
+  <li>$U$: The orthogonal matrix whose columns are the <strong>eigenvectors</strong> (principal components) of $\Sigma$. This matrix represents the rotation.</li>
+  <li>$\Lambda$: A diagonal matrix whose diagonal entries are the <strong>eigenvalues</strong> ($\lambda_i$) of $\Sigma$. These values represent the variance along each principal component direction.</li>
+</ul>
+
+<h4 id="step-4-compute-the-pca-whitening-matrix-w_pca">Step 4: Compute the PCA Whitening Matrix ($W_{PCA}$)</h4>
+
+<p>The whitening transformation matrix is formed by:</p>
+
+\[W_{PCA} = \Lambda^{-1/2} U^{\top}\]
+
+<p>where $\Lambda^{-1/2}$ is a diagonal matrix containing the reciprocal of the square root of each eigenvalue (i.e., $\frac{1}{\sqrt{\lambda_i}}$).</p>
+
+<div class="callout callout-warn">
+  <p><strong>Numerical stability:</strong> A small constant $\epsilon$ is often added to the eigenvalues before taking the reciprocal square root — $\frac{1}{\sqrt{\lambda_i + \epsilon}}$ — to prevent division by zero when an eigenvalue is close to zero.</p>
+</div>
+
+<h4 id="step-5-apply-the-transformation">Step 5: Apply the Transformation</h4>
+
+<p>Apply the whitening matrix to the centered data to get the PCA-whitened data:</p>
+
+\[X_{PCA\text{-}white} = W_{PCA} \cdot X_{centered} = \Lambda^{-1/2} U^{\top} X_{centered}\]
+
+<h3 id="why-the-scaling-factor-lambda-12">Why the scaling factor $\Lambda^{-1/2}$?</h3>
+
+<div class="callout callout-tip">
+  <ol>
+    <li>After rotation ($U^{\top} X$), the variance along each axis is given by $\Lambda$.</li>
+    <li>To normalize each axis to unit variance, we multiply by the inverse square root of the eigenvalues.</li>
+    <li>This gives us: $\text{Cov}(\Lambda^{-1/2} U^{\top} X) = \Lambda^{-1/2} \Lambda \Lambda^{-1/2} = I$.</li>
+  </ol>
+</div>
+
+<h2 id="4-zca-whitening-zero-phase-component-analysis">4. ZCA Whitening (Zero-Phase Component Analysis)</h2>
+
+<p>ZCA goes one step further by rotating the data <strong>back</strong> to its original orientation after whitening.</p>
+
+<div class="formula-box">
+$$X_{ZCA\text{-}white} = U \Lambda^{-1/2} U^{\top} X_{centered}$$
+</div>
+
+<blockquote>
+  <p><strong>Why ZCA?</strong> PCA whitening “scrambles” the original feature space into abstract components. ZCA whitens the data while staying as close as possible to the original representation — making it ideal for images.</p>
+</blockquote>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Property</th>
+      <th style="text-align: left">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><strong>Identity Covariance</strong></td>
+      <td style="text-align: left">Like PCA whitening, the final covariance is $I$.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><strong>Minimal Distortion</strong></td>
+      <td style="text-align: left">It stays as close to the original data as possible.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><strong>Structure Preservation</strong></td>
+      <td style="text-align: left">Excellent for images — doesn’t scramble pixels into abstract components.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="5-summary-table">5. Summary Table</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Operation</th>
+      <th style="text-align: left">Formula</th>
+      <th style="text-align: left">Effect</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><strong>Centering</strong></td>
+      <td style="text-align: left">$X - \mu$</td>
+      <td style="text-align: left">Originates data at zero.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><strong>Rotation</strong></td>
+      <td style="text-align: left">$U^{\top} X$</td>
+      <td style="text-align: left">Decorrelates data (PCA Scores).</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><strong>PCA Whitening</strong></td>
+      <td style="text-align: left">$\Lambda^{-1/2} U^{\top} X$</td>
+      <td style="text-align: left">Decorrelates + Unit Variance.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><strong>ZCA Whitening</strong></td>
+      <td style="text-align: left">$U \Lambda^{-1/2} U^{\top} X$</td>
+      <td style="text-align: left">Decorrelates + Unit Variance + Original Orientation.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="6-frequently-asked-questions">6. Frequently Asked Questions</h2>
+
+<details>
+  <summary><strong>Q1: Why are we rescaling in PCA Whitening?</strong></summary>
+
+  <p>The rescaling step is essential to achieve the second part of the “whitening” goal: <strong>unit variance</strong>.</p>
+
+  <p>The full PCA whitening process involves two main linear transformation steps:</p>
+
+  <ol>
+    <li><strong>Rotation (Decorrelation):</strong> The data is rotated into the principal component basis. This step uses the matrix of eigenvectors ($U$) to align the data with its principal axes, which <strong>removes all linear correlation</strong> between the new features (components). The covariance matrix of the rotated data, $U^{\top} X$, is now a <strong>diagonal matrix</strong> $\Lambda$, where the diagonal elements ($\lambda_i$) are the eigenvalues (variances) of the data along each component axis.</li>
+    <li><strong>Rescaling (Normalization):</strong> The data is rescaled by dividing each component by the square root of its own variance (the corresponding eigenvalue).</li>
+  </ol>
+
+  <p>This division ensures that the variance of every component is equal to $1$. The transformation matrix includes $\Lambda^{-1/2}$, which is the diagonal matrix of these $\frac{1}{\sqrt{\lambda_i}}$ factors.</p>
+
+  <p><strong>Purpose of Rescaling:</strong></p>
+
+  <ul>
+    <li><strong>Achieve Identity Covariance:</strong> The ultimate goal of whitening is to transform the data so that its final covariance matrix is the <strong>Identity Matrix</strong> ($I$). The rotation step gives you a diagonal covariance matrix ($\Lambda$), but the diagonal entries are the original variances ($\lambda_i$). The rescaling step changes these entries from $\lambda_i$ to $1$. The final covariance matrix of the whitened data, $\text{Cov}(X_{white})$, is $I$.</li>
+    <li><strong>Equalize Feature Importance:</strong> By ensuring all features have unit variance, the rescaling prevents features with large natural scales (large $\lambda_i$) from numerically dominating the downstream machine learning algorithm. It makes all features equally important in terms of their variance, which can stabilize training and improve the performance of models that assume spherical data (like certain clustering or neural network algorithms).</li>
+  </ul>
+
+</details>
+
+<details>
+  <summary><strong>Q2: Can we do dimensionality reduction in whitening?</strong></summary>
+
+  <p><strong>Yes, you can, and in practice, you often do.</strong></p>
+
+  <p>PCA whitening inherently contains the mechanism for dimensionality reduction: <strong>PCA (Principal Component Analysis)</strong>.</p>
+
+  <p><strong>How Dimensionality Reduction is Performed:</strong></p>
+
+  <p>The eigenvalues ($\lambda_i$) computed during the PCA step represent the amount of variance captured by their corresponding principal components.</p>
+
+  <ol>
+    <li><strong>Identify Informative Components:</strong> The eigenvalues are typically sorted in descending order. You choose to keep only the top $k$ principal components that capture a sufficient amount of the total variance (e.g., 95% or 99%).</li>
+    <li><strong>Truncate the Matrices:</strong> Instead of using the full eigenvector matrix $U$ and eigenvalue matrix $\Lambda$ (both $d \times d$ for $d$ dimensions), you only keep the first $k$ columns of $U$ and the first $k$ diagonal elements of $\Lambda$.</li>
+    <li><strong>Apply the Transformation:</strong> You then apply the whitening transformation using these reduced $k$-dimensional matrices.</li>
+  </ol>
+
+  <p>The resulting whitened data will have $k$ dimensions (features), where $k &lt; d$, and will still be decorrelated with unit variance.</p>
+
+  <p>Therefore, <strong>PCA whitening</strong> is frequently used as a pre-processing step to both <strong>decorrelate</strong> and <strong>reduce the dimensionality</strong> of the data before feeding it into a subsequent algorithm like a neural network or a classifier.</p>
+
+</details>
+
+<details>
+  <summary><strong>Q3: What is the meaning of the decomposition formula $A = U \Lambda U^{\top}$?</strong></summary>
+
+  <p>The expression $A = U \Lambda U^{\top}$ is the most common form of the <strong>Eigenvalue Decomposition (EVD)</strong> for <strong>real symmetric matrices</strong> (like a covariance matrix, $\Sigma$).</p>
+
+  <p>This formula states that a square, symmetric matrix $A$ can be factored into a product of three matrices:</p>
+
+  <ul>
+    <li><strong>$U$ (The Eigenvector Matrix):</strong>
+      <ul>
+        <li>This is an <strong>orthogonal matrix</strong> whose columns are the <strong>eigenvectors</strong> of $A$.</li>
+        <li>Since it is orthogonal, its transpose is its inverse: $U^{\top} = U^{-1}$. This is why the decomposition is often written as $A = P D P^{-1}$ for non-symmetric matrices, but simplifies to $A = U \Lambda U^{\top}$ for symmetric matrices.</li>
+        <li><strong>Geometric Meaning:</strong> The matrix $U$ represents a <strong>rotation</strong> (or reflection) that aligns the coordinate axes with the principal axes of the data defined by $A$.</li>
+      </ul>
+    </li>
+    <li><strong>$\Lambda$ (Lambda - The Eigenvalue Matrix):</strong>
+      <ul>
+        <li>This is a <strong>diagonal matrix</strong> whose diagonal entries are the <strong>eigenvalues</strong> ($\lambda_i$) of $A$.</li>
+        <li><strong>Geometric Meaning:</strong> The eigenvalues represent the <strong>scaling factors</strong> (the variance) along each new coordinate axis defined by the eigenvectors in $U$.</li>
+      </ul>
+    </li>
+    <li><strong>$U^{\top}$ (U Transpose):</strong>
+      <ul>
+        <li>This is the transpose of the eigenvector matrix, which is also its inverse ($U^{-1}$).</li>
+        <li><strong>Geometric Meaning:</strong> This represents the inverse rotation needed to return to the original coordinate system.</li>
+      </ul>
+    </li>
+  </ul>
+
+</details>
+
+<details>
+  <summary><strong>Q4: What is the significance of EVD in data analysis (like PCA)?</strong></summary>
+
+  <p>The decomposition $A = U \Lambda U^{\top}$ is incredibly important because it allows you to interpret the complex action of the matrix $A$ as a simple sequence of geometric transformations:</p>
+
+  <ol>
+    <li><strong>$U^{\top}$:</strong> Rotate the vector $x$ into the basis of the eigenvectors.</li>
+    <li><strong>$\Lambda$:</strong> Scale the rotated vector independently along each new axis (by the eigenvalues).</li>
+    <li><strong>$U$:</strong> Rotate the result back to the original coordinate system.</li>
+  </ol>
+
+  <p>In the context of <strong>Principal Component Analysis (PCA)</strong>, where $A$ is the <strong>covariance matrix</strong> ($\Sigma$), this decomposition is the foundation:</p>
+
+  <ol>
+    <li>The columns of $U$ are the <strong>Principal Components (PCs)</strong>.</li>
+    <li>The diagonal entries of $\Lambda$ are the <strong>variances</strong> along those PCs.</li>
+  </ol>
+
+</details>
+
+<details>
+  <summary><strong>Q5: Why is centering (zero-meaning) required in PCA?</strong></summary>
+
+  <p>Centering is the process of subtracting the mean of each feature from the dataset. In PCA, this is a non-negotiable preprocessing step because it ensures that the algorithm focuses on the <strong>internal structure (variance)</strong> of the data rather than its absolute position in space.</p>
+
+  <h4 id="the-mathematical-requirement-of-covariance">1. The Mathematical Requirement of Covariance</h4>
+
+  <p>PCA is based on the <strong>Covariance Matrix</strong> ($\Sigma$). The statistical formula for covariance between two variables $X$ and $Y$ is:</p>
+
+\[\text{Cov}(X, Y) = \frac{1}{N} \sum_{i=1}^{N} (x_i - \bar{x})(y_i - \bar{y})\]
+
+  <p>Notice that the formula explicitly subtracts the means ($\bar{x}$ and $\bar{y}$). In matrix notation, we often simplify the covariance calculation to:</p>
+
+\[\Sigma = \frac{1}{N} X^{\top} X\]
+
+  <p>This simplified matrix multiplication <strong>only works if the data is already centered</strong> (where $\bar{x} = 0$). If you skip centering, $X^{\top} X$ calculates the “raw moments” (distance from the origin) rather than the variance (distance from the mean), leading to an incorrect covariance matrix.</p>
+
+  <h4 id="geometric-alignment-of-principal-components">2. Geometric Alignment of Principal Components</h4>
+
+  <p>PCA seeks to find the directions (eigenvectors) of maximum spread. These vectors must originate from the origin $(0, 0)$.</p>
+
+  <ul>
+    <li><strong>With Centering:</strong> The data cloud is shifted so its center of mass is at $(0, 0)$. The first principal component (PC1) then aligns perfectly with the direction of the greatest spread within the cluster.</li>
+    <li><strong>Without Centering:</strong> If the data cluster is far from the origin, the first principal component will likely point from the origin directly toward the “center” of the data cluster. Instead of capturing the <em>variance</em> (the shape of the cloud), it captures the <em>offset</em> (the position of the cloud).</li>
+  </ul>
+
+  <h4 id="orthogonality-and-basis-transformation">3. Orthogonality and Basis Transformation</h4>
+
+  <p>PCA creates a new coordinate system. For the new axes to be valid rotations of the original axes, they must share the same origin. If the data isn’t centered, the “rotation” performed by the eigenvector matrix $U$ will be performed around the coordinate $(0, 0)$ rather than the center of the data, which “scrambles” the relationship between the features and makes the resulting components uninterpretable.</p>
+
+  <h4 id="impact-on-reconstruction">4. Impact on Reconstruction</h4>
+
+  <p>If you use PCA for dimensionality reduction and then try to reconstruct the original data, the reconstruction will be fundamentally broken if you didn’t center. PCA assumes that the data is a linear combination of components <strong>plus the mean</strong>. If the mean isn’t handled correctly at the start, you lose the baseline needed to map the compressed data back into its original space.</p>
+
+</details>]]></content><author><name></name></author><category term="machine-learning" /><category term="linear-algebra" /><category term="preprocessing" /><summary type="html"><![CDATA[Understanding whitening transforms — from eigenvalue decomposition to PCA and ZCA whitening — with clear math and intuition.]]></summary></entry><entry><title type="html">Quantization in CNNs: From FP32 Training to INT8 Deployment</title><link href="https://archmaester.github.io/blog/2026/quantization-cnns-fp32-to-int8/" rel="alternate" type="text/html" title="Quantization in CNNs: From FP32 Training to INT8 Deployment" /><published>2026-02-14T00:00:00+00:00</published><updated>2026-02-14T00:00:00+00:00</updated><id>https://archmaester.github.io/blog/2026/quantization-cnns-fp32-to-int8</id><content type="html" xml:base="https://archmaester.github.io/blog/2026/quantization-cnns-fp32-to-int8/"><![CDATA[<h2 id="why-this-matters">Why This Matters</h2>
+
+<p>Deep neural networks are typically trained in <strong>FP32 precision</strong>, but most real-world deployments — especially on edge devices — rely on <strong>lower precision arithmetic like INT8</strong>.</p>
+
+<p>Why does this work? How are such networks trained? Can distillation help? And what is the actual numeric range of weights in practice?</p>
+
+<p>This post walks through the full story — from floating-point CNN training to INT8 weight deployment — with practical intuition and engineering insight.</p>
+
+<h2 id="1-why-quantization-exists">1. Why Quantization Exists</h2>
+
+<p>FP32 is expensive:</p>
+
+<ul>
+  <li>4 bytes per parameter</li>
+  <li>Higher memory bandwidth</li>
+  <li>More energy consumption</li>
+  <li>Slower inference on CPUs and edge hardware</li>
+</ul>
+
+<p>INT8 gives:</p>
+
+<ul>
+  <li><strong>4× smaller models</strong></li>
+  <li><strong>2–4× faster inference</strong></li>
+  <li>Lower memory traffic</li>
+  <li>Better hardware utilization</li>
+</ul>
+
+<p>The surprising part?</p>
+
+<blockquote>
+  <p>Most CNNs barely lose accuracy when weights are reduced to INT8.</p>
+</blockquote>
+
+<p>To understand why, we need to examine how CNN weights behave.</p>
+
+<h2 id="2-what-is-the-typical-range-of-cnn-weights">2. What Is the Typical Range of CNN Weights?</h2>
+
+<p>After training, CNN weights are:</p>
+
+<ul>
+  <li>Zero-centered</li>
+  <li>Gaussian-like distributed</li>
+  <li>Small in magnitude</li>
+  <li>Heavily concentrated near zero</li>
+</ul>
+
+<p>In practice:</p>
+
+<ul>
+  <li><strong>~99% of weights lie in [-0.1, +0.1]</strong></li>
+  <li>Rare outliers may approach ±1</li>
+  <li>Values beyond ±2 are extremely unusual</li>
+</ul>
+
+<p>Why so small?</p>
+
+<ol>
+  <li><strong>Kaiming initialization</strong> starts small.</li>
+  <li><strong>Weight decay</strong> shrinks norms.</li>
+  <li><strong>BatchNorm</strong> absorbs scale.</li>
+  <li>Networks rely on <em>relative</em> patterns, not large magnitudes.</li>
+</ol>
+
+<p>This small range is the reason INT8 works.</p>
+
+<h2 id="3-what-int8-actually-represents">3. What INT8 Actually Represents</h2>
+
+<p>Signed INT8 range: <strong>-128 to +127</strong> (256 discrete levels).</p>
+
+<p>To map floating-point weights to this range, we use <strong>linear quantization</strong>:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>q = round(w / scale) + zero_point
+</code></pre></div></div>
+
+<p>Where:</p>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">w</code> is the original FP32 weight</li>
+  <li><code class="language-plaintext highlighter-rouge">scale</code> determines the step size between quantized values</li>
+  <li><code class="language-plaintext highlighter-rouge">zero_point</code> shifts the mapping so that FP32 zero maps exactly to an integer</li>
+</ul>
+
+<p>For <strong>symmetric quantization</strong> (zero_point = 0), mapping weights in [-0.1, +0.1] to [-128, +127]:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>scale = 0.2 / 255 ≈ 0.000784
+</code></pre></div></div>
+
+<p>Each INT8 step represents less than 0.001 in the original FP32 space. That is far finer than what the network needs to preserve its learned representations.</p>
+
+<h2 id="4-post-training-quantization-ptq">4. Post-Training Quantization (PTQ)</h2>
+
+<p>The simplest approach: train in FP32, quantize afterwards.</p>
+
+<p><strong>Steps:</strong></p>
+
+<ol>
+  <li>Train a model normally in FP32</li>
+  <li>Collect calibration statistics (min/max of weights and activations)</li>
+  <li>Compute scale and zero_point per layer (or per channel)</li>
+  <li>Round all weights to INT8</li>
+</ol>
+
+<p><strong>Per-channel vs. per-tensor:</strong></p>
+
+<ul>
+  <li><strong>Per-tensor</strong>: one scale for the entire weight tensor. Simple but coarse.</li>
+  <li><strong>Per-channel</strong>: one scale per output channel. More accurate, widely supported on modern hardware.</li>
+</ul>
+
+<p><strong>When PTQ works well:</strong></p>
+<ul>
+  <li>Large models (ResNet-50, EfficientNet)</li>
+  <li>Weights are well-distributed with few outliers</li>
+  <li>Activations have stable ranges</li>
+</ul>
+
+<p><strong>When PTQ struggles:</strong></p>
+<ul>
+  <li>Depthwise convolutions (small accumulation, sensitive to rounding)</li>
+  <li>Lightweight models where every bit of precision counts</li>
+  <li>Layers with high dynamic range or outlier activations</li>
+</ul>
+
+<h2 id="5-quantization-aware-training-qat">5. Quantization-Aware Training (QAT)</h2>
+
+<p>When PTQ isn’t enough, we simulate quantization <em>during training</em>.</p>
+
+<p><strong>How it works:</strong></p>
+
+<ol>
+  <li>Insert <strong>fake quantization nodes</strong> into the training graph</li>
+  <li>Forward pass: weights and activations are quantized then dequantized (simulating rounding error)</li>
+  <li>Backward pass: use the <strong>Straight-Through Estimator (STE)</strong> — gradients pass through the rounding operation as if it were the identity function</li>
+  <li>The network learns to be robust to quantization noise</li>
+</ol>
+
+<p><strong>Why QAT helps:</strong></p>
+
+<p>The model adapts its weight distribution during training. It learns to:</p>
+<ul>
+  <li>Avoid outlier weights that waste quantization range</li>
+  <li>Spread information across bins more uniformly</li>
+  <li>Compensate for rounding errors through adjacent layers</li>
+</ul>
+
+<p>QAT typically recovers <strong>most or all</strong> of the accuracy lost during PTQ, even for sensitive architectures like MobileNet.</p>
+
+<h2 id="6-can-knowledge-distillation-help">6. Can Knowledge Distillation Help?</h2>
+
+<p><strong>Yes</strong> — distillation and quantization are complementary.</p>
+
+<p>The idea: train a quantized <strong>student</strong> model using soft targets from a full-precision <strong>teacher</strong>.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Loss = α × CrossEntropy(student, hard_labels) + (1 - α) × KL(student_logits, teacher_logits)
+</code></pre></div></div>
+
+<p>Why this helps quantized models:</p>
+
+<ul>
+  <li><strong>Soft targets carry richer information</strong> than hard labels (inter-class relationships)</li>
+  <li>The student learns smoother decision boundaries that are more robust to quantization noise</li>
+  <li>Distillation can compensate for capacity lost during quantization</li>
+</ul>
+
+<p><strong>Practical recipe:</strong></p>
+
+<ol>
+  <li>Train a full-precision teacher</li>
+  <li>Initialize the student with the same architecture</li>
+  <li>Train with QAT + distillation loss</li>
+  <li>Quantize the student to INT8</li>
+</ol>
+
+<p>This combination — QAT + distillation — is the gold standard for deploying lightweight quantized models on edge hardware.</p>
+
+<h2 id="7-the-full-pipeline">7. The Full Pipeline</h2>
+
+<p>Putting it all together, here is a typical production pipeline:</p>
+
+<p><strong>Stage 1: FP32 Training</strong></p>
+<ul>
+  <li>Standard training with Kaiming init, BatchNorm, weight decay</li>
+  <li>Result: a well-trained FP32 model</li>
+</ul>
+
+<p><strong>Stage 2: Calibration</strong></p>
+<ul>
+  <li>Run a representative dataset through the model</li>
+  <li>Record activation ranges per layer</li>
+  <li>Decide quantization scheme (symmetric vs. asymmetric, per-tensor vs. per-channel)</li>
+</ul>
+
+<p><strong>Stage 3: PTQ Attempt</strong></p>
+<ul>
+  <li>Quantize weights and activations to INT8</li>
+  <li>Evaluate accuracy drop</li>
+  <li>If acceptable (&lt; 1% drop), deploy</li>
+</ul>
+
+<p><strong>Stage 4: QAT (if needed)</strong></p>
+<ul>
+  <li>Fine-tune with fake quantization nodes for 10–20% of original training epochs</li>
+  <li>Optionally add distillation from the FP32 teacher</li>
+  <li>Re-evaluate accuracy</li>
+</ul>
+
+<p><strong>Stage 5: Export and Deploy</strong></p>
+<ul>
+  <li>Export quantized model to target runtime (TFLite, ONNX Runtime, TensorRT)</li>
+  <li>Validate on-device accuracy and latency</li>
+  <li>Ship it</li>
+</ul>
+
+<h2 id="8-common-pitfalls">8. Common Pitfalls</h2>
+
+<p>A few things that catch practitioners off guard:</p>
+
+<ul>
+  <li><strong>Ignoring activation quantization.</strong> Weights are easy; activation ranges vary per input and need calibration.</li>
+  <li><strong>Using per-tensor quantization on depthwise layers.</strong> Per-channel is almost always better here.</li>
+  <li><strong>Skipping BatchNorm folding.</strong> BN layers should be folded into conv weights before quantization to avoid unnecessary operations.</li>
+  <li><strong>Calibrating on unrepresentative data.</strong> Your calibration set must reflect real deployment conditions.</li>
+  <li><strong>Expecting miracles from 4-bit.</strong> INT8 is mature; INT4 and lower still require careful architecture-specific tuning.</li>
+</ul>
+
+<h2 id="final-takeaway">Final Takeaway</h2>
+
+<p>Quantization works because CNN weights are naturally well-behaved: small, centered, and smooth. INT8 provides more than enough resolution to represent them faithfully.</p>
+
+<p>The practical recipe is straightforward:</p>
+
+<ol>
+  <li><strong>Try PTQ first</strong> — it’s free and often sufficient</li>
+  <li><strong>Use QAT</strong> when PTQ drops accuracy</li>
+  <li><strong>Add distillation</strong> for the hardest cases</li>
+</ol>
+
+<p>Together, these techniques make it possible to deploy powerful CNNs on devices with a fraction of the compute and memory budget — without sacrificing the accuracy that makes them useful.</p>]]></content><author><name></name></author><category term="edge-ai" /><category term="deep-learning" /><category term="quantization" /><summary type="html"><![CDATA[A practical walkthrough of how CNN weights go from 32-bit floating point to 8-bit integers — and why it barely hurts accuracy.]]></summary></entry></feed>

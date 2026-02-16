@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+<title>
+
+  Monish  Keswani
+
+
+  | Quantization in CNNs: From FP32 Training to INT8 Deployment
+
+</title>
+<meta name="description" content="A simple, whitespace theme for academics. Based on [*folio](https://github.com/bogoli/-folio) design.
+">
+
+<!-- Open Graph -->
+
+<meta property="og:site_name" content="A simple, whitespace theme for academics. Based on [*folio](https://github.com/bogoli/-folio) design.
+" />
+<meta property="og:type" content="object" />
+<meta property="og:title" content="" />
+<meta property="og:url" content="https://archmaester.github.io/blog/2026/quantization-cnns-fp32-to-int8/" />
+<meta property="og:description" content="Quantization in CNNs: From FP32 Training to INT8 Deployment" />
+<meta property="og:image" content="" />
+
+
+<!-- Bootstrap & MDB -->
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" integrity="sha512-MoRNloxbStBcD8z3M/2BmnT+rg4IsMxPkXaGh2zD6LGNNFE80W3onsAhRcMAMrSoyWL9xD7Ert0men7vR8LUZg==" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/css/mdb.min.css" integrity="sha512-RO38pBRxYH3SoOprtPTD86JFOclM51/XTIdEPh5j8sj4tp8jmQIx26twG52UaLi//hQldfrh7e51WzP9wuP32Q==" crossorigin="anonymous" />
+
+<!-- Fonts & Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css"  integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.9.0/css/academicons.min.css" integrity="sha512-W4yqoT1+8NLkinBLBZko+dFB2ZbHsYLDdr50VElllRcNt2Q4/GSs6u71UHKxB7S6JEMCp5Ve4xjh3eGQl/HRvg==" crossorigin="anonymous">
+<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:100,300,400,500,700|Material+Icons">
+
+<!-- Code Syntax Highlighting -->
+<link rel="stylesheet" href="https://gitcdn.link/repo/jwarby/jekyll-pygments-themes/master/github.css" />
+
+<!-- Styles -->
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💡</text></svg>">
+
+<link rel="stylesheet" href="/assets/css/main.css">
+<link rel="canonical" href="/blog/2026/quantization-cnns-fp32-to-int8/">
+
+<!-- JQuery -->
+<!-- jQuery -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+
+
+<!-- Theming-->
+
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/dark_mode.js"></script>
+
+
+
+
+
+
+
+<!-- GoatCounter Analytics -->
+<script data-goatcounter="https://archmaester.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+
+
+    
+<!-- MathJax -->
+<script type="text/javascript">
+  window.MathJax = {
+    tex: {
+      tags: 'ams',
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']]
+    }
+  };
+</script>
+<script defer type="text/javascript" id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.js"></script>
+<script defer src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+
+
+  </head>
+
+  <body class="fixed-top-nav ">
+
+    <!-- Header -->
+
+    <header>
+
+    <!-- Nav Bar -->
+    <nav id="navbar" class="navbar navbar-light navbar-expand-sm fixed-top">
+    <div class="container">
+      
+      <a class="navbar-brand title font-weight-lighter" href="https://archmaester.github.io/">
+       <span class="font-weight-bold">Monish</span>   Keswani
+      </a>
+      
+      <!-- Navbar Toggle -->
+      <button class="navbar-toggler collapsed ml-auto" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar top-bar"></span>
+        <span class="icon-bar middle-bar"></span>
+        <span class="icon-bar bottom-bar"></span>
+      </button>
+      <div class="collapse navbar-collapse text-right" id="navbarNav">
+        <ul class="navbar-nav ml-auto flex-nowrap">
+          <!-- About -->
+          <li class="nav-item ">
+            <a class="nav-link" href="/">
+              about
+              
+            </a>
+          </li>
+          
+          <!-- Blog -->
+          <li class="nav-item active">
+            <a class="nav-link" href="/blog/">
+              blog
+              
+            </a>
+          </li>
+          
+          <!-- Other pages -->
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="nav-item ">
+              <a class="nav-link" href="/contact/">
+                contact
+                
+              </a>
+          </li>
+          
+          
+          
+          
+          
+          <li class="nav-item ">
+              <a class="nav-link" href="/cv/">
+                cv
+                
+              </a>
+          </li>
+          
+          
+          
+          
+          
+          <li class="nav-item ">
+              <a class="nav-link" href="/projects/">
+                projects
+                
+              </a>
+          </li>
+          
+          
+          
+          
+          
+          <li class="nav-item ">
+              <a class="nav-link" href="/publications/">
+                publications
+                
+              </a>
+          </li>
+          
+          
+          
+          
+            <div class = "toggle-container">
+              <a id = "light-toggle">
+                  <i class="fas fa-moon"></i>
+                  <i class="fas fa-sun"></i>
+              </a>
+            </div>
+          
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+</header>
+
+
+    <!-- Content -->
+
+    <div class="container mt-5">
+      
+
+<div class="post">
+
+  <a href="/blog/" class="back-to-blog">&larr; Back to blog</a>
+
+  <header class="post-header">
+    <h1 class="post-title">Quantization in CNNs: From FP32 Training to INT8 Deployment</h1>
+    
+    
+    
+    <p class="post-meta">
+      February 14, 2026
+      
+      <span class="reading-time">&middot; 4 min read</span>
+    </p>
+    
+    <p class="post-description-text">A practical walkthrough of how CNN weights go from 32-bit floating point to 8-bit integers — and why it barely hurts accuracy.</p>
+    
+    
+    <div class="post-tags">
+      
+      <span class="tag-badge">edge-ai</span>
+      
+      <span class="tag-badge">deep-learning</span>
+      
+      <span class="tag-badge">quantization</span>
+      
+    </div>
+    
+  </header>
+
+  
+  
+  
+  
+  
+  
+  <nav class="toc-wrapper">
+    <div class="toc-title">Table of Contents</div>
+    <ul>
+      
+        
+        
+          <li><a href="#why-this-matters">Why This Matters</a></li>
+        
+      
+        
+        
+          <li><a href="#1-why-quantization-exists">1. Why Quantization Exists</a></li>
+        
+      
+        
+        
+          <li><a href="#2-what-is-the-typical-range-of-cnn-weights">2. What Is the Typical Range of CNN Weights?</a></li>
+        
+      
+        
+        
+          <li><a href="#3-what-int8-actually-represents">3. What INT8 Actually Represents</a></li>
+        
+      
+        
+        
+          <li><a href="#4-post-training-quantization-ptq">4. Post-Training Quantization (PTQ)</a></li>
+        
+      
+        
+        
+          <li><a href="#5-quantization-aware-training-qat">5. Quantization-Aware Training (QAT)</a></li>
+        
+      
+        
+        
+          <li><a href="#6-can-knowledge-distillation-help">6. Can Knowledge Distillation Help?</a></li>
+        
+      
+        
+        
+          <li><a href="#7-the-full-pipeline">7. The Full Pipeline</a></li>
+        
+      
+        
+        
+          <li><a href="#8-common-pitfalls">8. Common Pitfalls</a></li>
+        
+      
+        
+        
+          <li><a href="#final-takeaway">Final Takeaway</a></li>
+        
+      
+    </ul>
+  </nav>
+  
+
+  <article class="post-content">
+    <h2 id="why-this-matters">Why This Matters</h2>
+
+<p>Deep neural networks are typically trained in <strong>FP32 precision</strong>, but most real-world deployments — especially on edge devices — rely on <strong>lower precision arithmetic like INT8</strong>.</p>
+
+<p>Why does this work? How are such networks trained? Can distillation help? And what is the actual numeric range of weights in practice?</p>
+
+<p>This post walks through the full story — from floating-point CNN training to INT8 weight deployment — with practical intuition and engineering insight.</p>
+
+<h2 id="1-why-quantization-exists">1. Why Quantization Exists</h2>
+
+<p>FP32 is expensive:</p>
+
+<ul>
+  <li>4 bytes per parameter</li>
+  <li>Higher memory bandwidth</li>
+  <li>More energy consumption</li>
+  <li>Slower inference on CPUs and edge hardware</li>
+</ul>
+
+<p>INT8 gives:</p>
+
+<ul>
+  <li><strong>4× smaller models</strong></li>
+  <li><strong>2–4× faster inference</strong></li>
+  <li>Lower memory traffic</li>
+  <li>Better hardware utilization</li>
+</ul>
+
+<p>The surprising part?</p>
+
+<blockquote>
+  <p>Most CNNs barely lose accuracy when weights are reduced to INT8.</p>
+</blockquote>
+
+<p>To understand why, we need to examine how CNN weights behave.</p>
+
+<h2 id="2-what-is-the-typical-range-of-cnn-weights">2. What Is the Typical Range of CNN Weights?</h2>
+
+<p>After training, CNN weights are:</p>
+
+<ul>
+  <li>Zero-centered</li>
+  <li>Gaussian-like distributed</li>
+  <li>Small in magnitude</li>
+  <li>Heavily concentrated near zero</li>
+</ul>
+
+<p>In practice:</p>
+
+<ul>
+  <li><strong>~99% of weights lie in [-0.1, +0.1]</strong></li>
+  <li>Rare outliers may approach ±1</li>
+  <li>Values beyond ±2 are extremely unusual</li>
+</ul>
+
+<p>Why so small?</p>
+
+<ol>
+  <li><strong>Kaiming initialization</strong> starts small.</li>
+  <li><strong>Weight decay</strong> shrinks norms.</li>
+  <li><strong>BatchNorm</strong> absorbs scale.</li>
+  <li>Networks rely on <em>relative</em> patterns, not large magnitudes.</li>
+</ol>
+
+<p>This small range is the reason INT8 works.</p>
+
+<h2 id="3-what-int8-actually-represents">3. What INT8 Actually Represents</h2>
+
+<p>Signed INT8 range: <strong>-128 to +127</strong> (256 discrete levels).</p>
+
+<p>To map floating-point weights to this range, we use <strong>linear quantization</strong>:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>q = round(w / scale) + zero_point
+</code></pre></div></div>
+
+<p>Where:</p>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">w</code> is the original FP32 weight</li>
+  <li><code class="language-plaintext highlighter-rouge">scale</code> determines the step size between quantized values</li>
+  <li><code class="language-plaintext highlighter-rouge">zero_point</code> shifts the mapping so that FP32 zero maps exactly to an integer</li>
+</ul>
+
+<p>For <strong>symmetric quantization</strong> (zero_point = 0), mapping weights in [-0.1, +0.1] to [-128, +127]:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>scale = 0.2 / 255 ≈ 0.000784
+</code></pre></div></div>
+
+<p>Each INT8 step represents less than 0.001 in the original FP32 space. That is far finer than what the network needs to preserve its learned representations.</p>
+
+<h2 id="4-post-training-quantization-ptq">4. Post-Training Quantization (PTQ)</h2>
+
+<p>The simplest approach: train in FP32, quantize afterwards.</p>
+
+<p><strong>Steps:</strong></p>
+
+<ol>
+  <li>Train a model normally in FP32</li>
+  <li>Collect calibration statistics (min/max of weights and activations)</li>
+  <li>Compute scale and zero_point per layer (or per channel)</li>
+  <li>Round all weights to INT8</li>
+</ol>
+
+<p><strong>Per-channel vs. per-tensor:</strong></p>
+
+<ul>
+  <li><strong>Per-tensor</strong>: one scale for the entire weight tensor. Simple but coarse.</li>
+  <li><strong>Per-channel</strong>: one scale per output channel. More accurate, widely supported on modern hardware.</li>
+</ul>
+
+<p><strong>When PTQ works well:</strong></p>
+<ul>
+  <li>Large models (ResNet-50, EfficientNet)</li>
+  <li>Weights are well-distributed with few outliers</li>
+  <li>Activations have stable ranges</li>
+</ul>
+
+<p><strong>When PTQ struggles:</strong></p>
+<ul>
+  <li>Depthwise convolutions (small accumulation, sensitive to rounding)</li>
+  <li>Lightweight models where every bit of precision counts</li>
+  <li>Layers with high dynamic range or outlier activations</li>
+</ul>
+
+<h2 id="5-quantization-aware-training-qat">5. Quantization-Aware Training (QAT)</h2>
+
+<p>When PTQ isn’t enough, we simulate quantization <em>during training</em>.</p>
+
+<p><strong>How it works:</strong></p>
+
+<ol>
+  <li>Insert <strong>fake quantization nodes</strong> into the training graph</li>
+  <li>Forward pass: weights and activations are quantized then dequantized (simulating rounding error)</li>
+  <li>Backward pass: use the <strong>Straight-Through Estimator (STE)</strong> — gradients pass through the rounding operation as if it were the identity function</li>
+  <li>The network learns to be robust to quantization noise</li>
+</ol>
+
+<p><strong>Why QAT helps:</strong></p>
+
+<p>The model adapts its weight distribution during training. It learns to:</p>
+<ul>
+  <li>Avoid outlier weights that waste quantization range</li>
+  <li>Spread information across bins more uniformly</li>
+  <li>Compensate for rounding errors through adjacent layers</li>
+</ul>
+
+<p>QAT typically recovers <strong>most or all</strong> of the accuracy lost during PTQ, even for sensitive architectures like MobileNet.</p>
+
+<h2 id="6-can-knowledge-distillation-help">6. Can Knowledge Distillation Help?</h2>
+
+<p><strong>Yes</strong> — distillation and quantization are complementary.</p>
+
+<p>The idea: train a quantized <strong>student</strong> model using soft targets from a full-precision <strong>teacher</strong>.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Loss = α × CrossEntropy(student, hard_labels) + (1 - α) × KL(student_logits, teacher_logits)
+</code></pre></div></div>
+
+<p>Why this helps quantized models:</p>
+
+<ul>
+  <li><strong>Soft targets carry richer information</strong> than hard labels (inter-class relationships)</li>
+  <li>The student learns smoother decision boundaries that are more robust to quantization noise</li>
+  <li>Distillation can compensate for capacity lost during quantization</li>
+</ul>
+
+<p><strong>Practical recipe:</strong></p>
+
+<ol>
+  <li>Train a full-precision teacher</li>
+  <li>Initialize the student with the same architecture</li>
+  <li>Train with QAT + distillation loss</li>
+  <li>Quantize the student to INT8</li>
+</ol>
+
+<p>This combination — QAT + distillation — is the gold standard for deploying lightweight quantized models on edge hardware.</p>
+
+<h2 id="7-the-full-pipeline">7. The Full Pipeline</h2>
+
+<p>Putting it all together, here is a typical production pipeline:</p>
+
+<p><strong>Stage 1: FP32 Training</strong></p>
+<ul>
+  <li>Standard training with Kaiming init, BatchNorm, weight decay</li>
+  <li>Result: a well-trained FP32 model</li>
+</ul>
+
+<p><strong>Stage 2: Calibration</strong></p>
+<ul>
+  <li>Run a representative dataset through the model</li>
+  <li>Record activation ranges per layer</li>
+  <li>Decide quantization scheme (symmetric vs. asymmetric, per-tensor vs. per-channel)</li>
+</ul>
+
+<p><strong>Stage 3: PTQ Attempt</strong></p>
+<ul>
+  <li>Quantize weights and activations to INT8</li>
+  <li>Evaluate accuracy drop</li>
+  <li>If acceptable (&lt; 1% drop), deploy</li>
+</ul>
+
+<p><strong>Stage 4: QAT (if needed)</strong></p>
+<ul>
+  <li>Fine-tune with fake quantization nodes for 10–20% of original training epochs</li>
+  <li>Optionally add distillation from the FP32 teacher</li>
+  <li>Re-evaluate accuracy</li>
+</ul>
+
+<p><strong>Stage 5: Export and Deploy</strong></p>
+<ul>
+  <li>Export quantized model to target runtime (TFLite, ONNX Runtime, TensorRT)</li>
+  <li>Validate on-device accuracy and latency</li>
+  <li>Ship it</li>
+</ul>
+
+<h2 id="8-common-pitfalls">8. Common Pitfalls</h2>
+
+<p>A few things that catch practitioners off guard:</p>
+
+<ul>
+  <li><strong>Ignoring activation quantization.</strong> Weights are easy; activation ranges vary per input and need calibration.</li>
+  <li><strong>Using per-tensor quantization on depthwise layers.</strong> Per-channel is almost always better here.</li>
+  <li><strong>Skipping BatchNorm folding.</strong> BN layers should be folded into conv weights before quantization to avoid unnecessary operations.</li>
+  <li><strong>Calibrating on unrepresentative data.</strong> Your calibration set must reflect real deployment conditions.</li>
+  <li><strong>Expecting miracles from 4-bit.</strong> INT8 is mature; INT4 and lower still require careful architecture-specific tuning.</li>
+</ul>
+
+<h2 id="final-takeaway">Final Takeaway</h2>
+
+<p>Quantization works because CNN weights are naturally well-behaved: small, centered, and smooth. INT8 provides more than enough resolution to represent them faithfully.</p>
+
+<p>The practical recipe is straightforward:</p>
+
+<ol>
+  <li><strong>Try PTQ first</strong> — it’s free and often sufficient</li>
+  <li><strong>Use QAT</strong> when PTQ drops accuracy</li>
+  <li><strong>Add distillation</strong> for the hardest cases</li>
+</ol>
+
+<p>Together, these techniques make it possible to deploy powerful CNNs on devices with a fraction of the compute and memory budget — without sacrificing the accuracy that makes them useful.</p>
+
+  </article>
+
+  
+  
+  
+  
+  <nav class="post-nav">
+    
+    <div class="post-nav-item prev">
+      <span class="nav-label">&larr; Previous</span>
+      <a href="/blog/2026/pca-zca-whitening/">PCA and ZCA Whitening: A Comprehensive Study Guide</a>
+    </div>
+    
+    
+    <div class="post-nav-item next">
+      <span class="nav-label">Next &rarr;</span>
+      <a href="/blog/2026/bias-variance-tradeoff/">Bias-Variance Tradeoff: From Theory to Ensemble Methods</a>
+    </div>
+    
+  </nav>
+  
+
+  
+
+</div>
+
+    </div>
+
+    <!-- Footer -->
+
+    
+<footer class="fixed-bottom">
+  <div class="container mt-0">
+    &copy; Copyright 2026 Monish  Keswani.
+    Powered by <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme.
+
+    
+    
+    Last updated: February 16, 2026.
+    
+  </div>
+</footer>
+
+
+
+  </body>
+
+  <!-- Bootsrap & MDB scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.4.4/umd/popper.min.js" integrity="sha512-eUQ9hGdLjBjY3F41CScH3UX+4JDSI9zXeroz7hJ+RteoCaY+GP/LDoM8AO+Pt+DRFw3nXqsjh9Zsts8hnYv8/A==" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha512-M5KW3ztuIICmVIhjSqXe01oV2bpe248gOxqmlcYrEzAvws7Pw3z6BK0iGbrwvdrUQUhi3eXgtxp5I8PDo9YfjQ==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/js/mdb.min.js" integrity="sha512-Mug9KHKmroQFMLm93zGrjhibM2z2Obg9l6qFG2qKjXEXkMp/VDkI4uju9m4QKPjWSwQ6O2qzZEnJDEeCw0Blcw==" crossorigin="anonymous"></script>
+
+  
+<!-- Mansory & imagesLoaded -->
+<script defer src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
+<script defer src="https://unpkg.com/imagesloaded@4/imagesloaded.pkgd.min.js"></script>
+<script defer src="/assets/js/mansory.js" type="text/javascript"></script>
+
+
+  
+
+
+<!-- Medium Zoom JS -->
+<script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.6/dist/medium-zoom.min.js" integrity="sha256-EdPgYcPk/IIrw7FYeuJQexva49pVRZNmt3LculEr7zM=" crossorigin="anonymous"></script>
+<script src="/assets/js/zoom.js"></script>
+
+
+<!-- Load Common JS -->
+<script src="/assets/js/common.js"></script>
+
+
+</html>
