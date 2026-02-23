@@ -4,7 +4,7 @@ title: projects
 permalink: /projects/
 description: Contains detailed description of some of my works
 nav: true
-display_categories: [research]
+display_categories: [research, games]
 horizontal: false
 ---
 

@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kicking the Anti-Nationals</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0f1923;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: 'Georgia', serif;
+      user-select: none;
+    }
+    canvas {
+      cursor: crosshair;
+      border: 3px solid #FF8C00;
+      box-shadow: 0 0 40px rgba(255,140,0,0.5);
+      display: block;
+    }
+    #hint {
+      color: #888;
+      font-size: 12px;
+      margin-top: 8px;
+      font-family: monospace;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+<canvas id="game" width="900" height="600"></canvas>
+<div id="hint">WASD / Arrows – Move &nbsp;|&nbsp; K / Space – KICK &nbsp;|&nbsp; Click – Catch chamchas!</div>
+<script>
+/* ================================================================
+   KICKING THE ANTI-NATIONALS  –  A Political Street-Patrol Web Game
+   Controls: WASD/Arrows | K or Space = KICK | Click = Catch
+   Goal: Catch all chamchas & find Pappu the leader
+   ================================================================ */
+
+(function () {
+'use strict';
+
+// ── roundRect polyfill ─────────────────────────────────────────
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2);
+    this.beginPath();
+    this.moveTo(x + r, y);
+    this.lineTo(x + w - r, y);
+    this.quadraticCurveTo(x + w, y, x + w, y + r);
+    this.lineTo(x + w, y + h - r);
+    this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    this.lineTo(x + r, y + h);
+    this.quadraticCurveTo(x, y + h, x, y + h - r);
+    this.lineTo(x, y + r);
+    this.quadraticCurveTo(x, y, x + r, y);
+    this.closePath();
+  };
+}
+
+// ── Canvas ─────────────────────────────────────────────────────
+const canvas = document.getElementById('game');
+const ctx    = canvas.getContext('2d');
+const W = 900, H = 600;
+const WORLD_W  = 4500;
+const GROUND_Y = 510;
+const STREET_Y = 420;
+
+// ── Palettes ───────────────────────────────────────────────────
+const SKINS     = ['#C68642','#8D5524','#D4A76A','#A0522D','#c4a35a','#b07d42'];
+const CSHIRTS   = ['#4682B4','#8B0000','#006400','#4B0082','#FF4500','#2E8B57','#B8860B','#708090','#CD5C5C'];
+const CPANTS    = ['#2F4F4F','#1C1C1C','#4a4a6a','#654321','#3a3a3a','#5a4030'];
+const SAREE_COL = ['#FF69B4','#8B008B','#DAA520','#FF1493','#1E90FF','#E91E63'];
+const BOXER_COL = ['#4169E1','#DC143C','#228B22','#FF8C00','#800080','#00CED1','#E91E63'];
+
+const SLOGANS = [
+  ['PM IS',        'COMPROMISED!'],
+  ['VOTE-CHORI!',  '😡'],
+  ['WHY',          'TRADE DEAL?'],
+  ['WHY NO',       'TRADE DEAL?'],
+  ['WE ARE FOOLS', '& STUPID!'],
+  ['DESH KE',      'YUVA! ✊'],
+];
+
+// ── Levels ─────────────────────────────────────────────────────
+const LEVELS = [
+  { name:'Jantar Mantar',     sub:'The Iconic Protest Grounds',
+    chamchas:3, innocents:8,  timeLimit:65, hasPappu:false, bgStyle:'jantar'     },
+  { name:'Connaught Place',   sub:'The Commercial Circle',
+    chamchas:4, innocents:12, timeLimit:60, hasPappu:false, bgStyle:'cp'         },
+  { name:'Parliament Street', sub:'The Power Corridor',
+    chamchas:5, innocents:15, timeLimit:55, hasPappu:false, bgStyle:'parliament' },
+  { name:'India Gate Lawns',  sub:'The National Memorial',
+    chamchas:6, innocents:18, timeLimit:50, hasPappu:false, bgStyle:'indiagate'  },
+  { name:'Rajpath Boulevard', sub:'Find Pappu the Leader!',
+    chamchas:7, innocents:20, timeLimit:45, hasPappu:true,  bgStyle:'rajpath'    },
+];
+
+// ── Game state ─────────────────────────────────────────────────
+let gs = {
+  phase: 'menu',
+  level: 0,
+  score: 0, totalScore: 0,
+  time: 60,
+  cameraX: 0,
+  found: 0, needed: 0,
+  msg: '', msgTimer: 0,
+};
+
+// ── Player ─────────────────────────────────────────────────────
+let player = {};
+function initPlayer() {
+  player = {
+    x: W / 2 + 200, y: GROUND_Y,
+    speed: 4, frame: 0, frameTimer: 0, facing: 1,
+    kickCooldown: 0,
+    kickAnim: 0,
+    KICK_CD: 1500,
+    KICK_DUR: 380,
+  };
+}
+
+// ── NPCs ───────────────────────────────────────────────────────
+let npcs = [];
+function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function rn(lo, hi) { return lo + Math.random() * (hi - lo); }
+
+function makeNPC(type, x) {
+  const speedMap = { innocent: rn(0.35, 0.9), chamcha: rn(0.4, 1.0), pappu: rn(0.6, 1.1) };
+  const o = {
+    type, x,
+    y: GROUND_Y,
+    vx: 0,
+    vxTarget: 0,
+    maxSpeed: speedMap[type] || 0.7,
+    frame: 0, frameTimer: rn(0, 30) * 10,
+    facing: Math.random() > 0.5 ? 1 : -1,
+    skin: rand(SKINS),
+    caught: false, catchAge: 0,
+    exclaimTimer: 0,
+    wanderTimer: rn(1500, 4000) | 0,
+    idleTimer: 0,
+  };
+  if (type === 'innocent') {
+    o.shirtColor = rand(CSHIRTS);
+    o.pantColor  = rand(CPANTS);
+    o.isSaree    = Math.random() < 0.3;
+    o.sareeColor = rand(SAREE_COL);
+    o.hasGlasses = Math.random() < 0.2;
+  } else if (type === 'chamcha') {
+    o.boxerColor   = rand(BOXER_COL);
+    o.boxerStripes = Math.random() < 0.5;
+    o.slogan       = rand(SLOGANS);
+    o.hasSign      = true;
+  } else if (type === 'pappu') {
+    o.spotted = false;
+  }
+  return o;
+}
+
+// ── Level init ─────────────────────────────────────────────────
+function initLevel(idx) {
+  const lv = LEVELS[idx];
+  gs.level = idx; gs.phase = 'playing';
+  gs.time = lv.timeLimit;
+  gs.cameraX = 0;
+  gs.found = 0; gs.needed = lv.chamchas + (lv.hasPappu ? 1 : 0);
+  gs.msg = ''; gs.msgTimer = 0;
+  initPlayer();
+  npcs = [];
+  for (let i = 0; i < lv.innocents; i++) npcs.push(makeNPC('innocent', rn(300, WORLD_W - 300)));
+  for (let i = 0; i < lv.chamchas;  i++) npcs.push(makeNPC('chamcha',  rn(300, WORLD_W - 300)));
+  if (lv.hasPappu) npcs.push(makeNPC('pappu', rn(800, WORLD_W - 800)));
+}
+
+// ── Keys ───────────────────────────────────────────────────────
+const keys = {};
+document.addEventListener('keydown', e => {
+  keys[e.code] = true;
+  if (e.code === 'Space') e.preventDefault();
+  if ((e.code === 'Space' || e.code === 'Enter') && gs.phase !== 'playing') advance();
+  if ((e.code === 'Space' || e.code === 'KeyK')  && gs.phase === 'playing')  tryKick();
+});
+document.addEventListener('keyup', e => keys[e.code] = false);
+
+function advance() {
+  if (gs.phase === 'menu') { initLevel(0); return; }
+  if (gs.phase === 'levelComplete') {
+    if (gs.level < LEVELS.length - 1) { gs.score = 0; initLevel(gs.level + 1); }
+    else { gs.phase = 'win'; }
+    return;
+  }
+  if (gs.phase === 'gameOver' || gs.phase === 'win') {
+    gs.totalScore = 0; gs.score = 0; gs.phase = 'menu';
+  }
+}
+
+// ── Kick logic ─────────────────────────────────────────────────
+function tryKick() {
+  if (player.kickCooldown > 0) return;
+  player.kickCooldown = player.KICK_CD;
+  player.kickAnim    = player.KICK_DUR;
+
+  const RANGE_X = 95, RANGE_Y = 38;
+  let hit = false;
+  for (const npc of npcs) {
+    if (npc.caught) continue;
+    const dx = (npc.x - player.x) * player.facing;
+    const dy = Math.abs(npc.y - player.y);
+    if (dx > -15 && dx < RANGE_X && dy < RANGE_Y) {
+      hit = true;
+      if (npc.type === 'chamcha' || npc.type === 'pappu') {
+        npc.caught = true;
+        gs.found++;
+        const pts = npc.type === 'pappu' ? 600 : 250;
+        gs.score += pts;
+        gs.msg = npc.type === 'pappu'
+          ? `PAPPU KICKED OUT! +600 pts!`
+          : `KICK CONNECTS! +250 pts!  (${gs.found}/${gs.needed})`;
+        gs.msgTimer = 2200;
+      } else {
+        gs.score = Math.max(0, gs.score - 75);
+        gs.msg = 'Kicked an innocent! -75 pts!';
+        gs.msgTimer = 1500;
+        npc.exclaimTimer = 1400;
+      }
+      break;
+    }
+  }
+  if (!hit) {
+    gs.msg = 'Kick missed!';
+    gs.msgTimer = 700;
+  }
+}
+
+// ── Click handler ──────────────────────────────────────────────
+canvas.addEventListener('click', e => {
+  if (gs.phase !== 'playing') { advance(); return; }
+  const r  = canvas.getBoundingClientRect();
+  const sx = e.clientX - r.left;
+  const sy = e.clientY - r.top;
+  for (const npc of npcs) {
+    if (npc.caught) continue;
+    const nx = npc.x - gs.cameraX;
+    if (Math.abs(sx - nx) < 26 && Math.abs(sy - (npc.y - 38)) < 45) {
+      if (npc.type === 'chamcha' || npc.type === 'pappu') {
+        npc.caught = true; gs.found++;
+        const pts = npc.type === 'pappu' ? 500 : 200;
+        gs.score += pts;
+        gs.msg = npc.type === 'pappu'
+          ? `Pappu Caught! +500 pts!`
+          : `Chamcha Found! +200 pts!  (${gs.found}/${gs.needed})`;
+        gs.msgTimer = 2500;
+      } else {
+        gs.score = Math.max(0, gs.score - 50);
+        gs.msg = 'Wrong person! -50 pts';
+        gs.msgTimer = 1500;
+        npc.exclaimTimer = 1200;
+      }
+      break;
+    }
+  }
+});
+
+// ── Update ─────────────────────────────────────────────────────
+let lastTime = 0, timeAccum = 0;
+
+function update(dt) {
+  if (gs.phase !== 'playing') return;
+
+  timeAccum += dt;
+  if (timeAccum >= 1000) { timeAccum -= 1000; gs.time--; }
+  if (gs.time <= 0) { gs.phase = 'gameOver'; return; }
+
+  if (player.kickCooldown > 0) player.kickCooldown -= dt;
+  if (player.kickAnim > 0)     player.kickAnim     -= dt;
+
+  let moved = false;
+  if (keys['ArrowLeft'] || keys['KeyA']) { player.x -= player.speed; player.facing = -1; moved = true; }
+  if (keys['ArrowRight']|| keys['KeyD']) { player.x += player.speed; player.facing =  1; moved = true; }
+  if (keys['ArrowUp']   || keys['KeyW']) { if (player.y > GROUND_Y - 25) player.y -= 2; moved = true; }
+  if (keys['ArrowDown'] || keys['KeyS']) { if (player.y < GROUND_Y + 8)  player.y += 2; moved = true; }
+  player.x = Math.max(80, Math.min(WORLD_W - 80, player.x));
+
+  const targetCam = player.x - W / 2;
+  gs.cameraX += (targetCam - gs.cameraX) * 0.12;
+  gs.cameraX = Math.max(0, Math.min(WORLD_W - W, gs.cameraX));
+
+  if (moved && player.kickAnim <= 0) {
+    player.frameTimer += dt;
+    if (player.frameTimer > 150) { player.frameTimer = 0; player.frame ^= 1; }
+  } else if (!moved) { player.frame = 0; }
+
+  for (const npc of npcs) {
+    if (npc.caught) { npc.catchAge += dt; continue; }
+
+    if (npc.idleTimer > 0) {
+      npc.idleTimer -= dt;
+      npc.vxTarget = 0;
+    } else {
+      npc.wanderTimer -= dt;
+      if (npc.wanderTimer <= 0) {
+        npc.wanderTimer = rn(1800, 5000) | 0;
+        if (Math.random() < 0.22) {
+          npc.idleTimer  = rn(600, 2200) | 0;
+          npc.vxTarget   = 0;
+        } else {
+          const dir = Math.random() < 0.5 ? 1 : -1;
+          npc.vxTarget = dir * npc.maxSpeed * rn(0.5, 1.0);
+        }
+      }
+    }
+
+    if (npc.type === 'pappu') {
+      if (Math.abs(npc.x - player.x) < 240) npc.spotted = true;
+      if (npc.spotted) npc.vxTarget = npc.x > player.x ? npc.maxSpeed * 1.4 : -npc.maxSpeed * 1.4;
+    }
+
+    npc.vx += (npc.vxTarget - npc.vx) * 0.045;
+    if (Math.abs(npc.vx) > 0.05) npc.facing = npc.vx > 0 ? 1 : -1;
+
+    npc.x += npc.vx;
+    if (npc.x < 80)           { npc.x = 80;           npc.vx = Math.abs(npc.vx) * 0.5; npc.vxTarget = Math.abs(npc.vxTarget); }
+    if (npc.x > WORLD_W - 80) { npc.x = WORLD_W - 80; npc.vx = -Math.abs(npc.vx) * 0.5; npc.vxTarget = -Math.abs(npc.vxTarget); }
+
+    if (Math.abs(npc.vx) > 0.1) {
+      const interval = Math.max(100, 260 - Math.abs(npc.vx) * 100);
+      npc.frameTimer += dt;
+      if (npc.frameTimer > interval) { npc.frameTimer = 0; npc.frame ^= 1; }
+    } else {
+      npc.frame = 0; npc.frameTimer = 0;
+    }
+    if (npc.exclaimTimer > 0) npc.exclaimTimer -= dt;
+  }
+
+  if (gs.msgTimer > 0) gs.msgTimer -= dt;
+
+  if (npcs.filter(n => !n.caught && (n.type === 'chamcha' || n.type === 'pappu')).length === 0) {
+    gs.totalScore += gs.score + gs.time * 10;
+    gs.phase = 'levelComplete';
+  }
+}
+
+// ================================================================
+//  CHARACTER DRAWING
+// ================================================================
+
+function legOff(frame, amp) { return frame === 1 ? amp : 0; }
+
+function drawEyes(x, y) {
+  ctx.fillStyle = '#111';
+  ctx.fillRect(x - 5, y - 1, 3, 3);
+  ctx.fillRect(x + 2, y - 1, 3, 3);
+}
+
+// ── PROTAGONIST – 75-year-old BJP man ──────────────────────────
+function drawProtagonist(wx, wy, frame, facing) {
+  const sx = wx - gs.cameraX;
+  const sy = wy;
+  if (sx < -80 || sx > W + 80) return;
+
+  ctx.save();
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.beginPath(); ctx.ellipse(sx, sy + 5, 16, 4, 0, 0, Math.PI * 2); ctx.fill();
+
+  const isKicking = player.kickAnim > 0;
+  const kickProg  = isKicking ? Math.sin((1 - player.kickAnim / player.KICK_DUR) * Math.PI) : 0;
+  const lo        = legOff(frame, 5);
+  const f         = facing;
+
+  // ── LEGS (pyjama) ──
+  ctx.fillStyle = '#F0EFE0';
+  if (isKicking) {
+    ctx.fillRect(sx - 13 * f, sy - 26, 12, 29);
+    ctx.save();
+    ctx.translate(sx + 6 * f, sy - 26);
+    ctx.rotate(-kickProg * 1.15 * f);
+    ctx.fillRect(-5, 0, 11, 30);
+    ctx.restore();
+    if (kickProg > 0.4) {
+      ctx.fillStyle = '#7a5c3a';
+      const bx = sx + 6 * f + Math.sin(kickProg * 1.15) * 30 * f;
+      const by = sy - 26 + Math.cos(kickProg * 1.15) * 30;
+      ctx.beginPath(); ctx.ellipse(bx + 8 * f, by + 2, 10, 6, -kickProg * 0.6 * f, 0, Math.PI * 2); ctx.fill();
+    }
+  } else {
+    ctx.fillRect(sx - 14, sy - 26, 12, 29 + lo * f);
+    ctx.fillRect(sx +  2, sy - 26, 12, 29 - lo * f + (f < 0 ? lo * 2 : 0));
+  }
+
+  // ── KURTA BODY (base layer) ──
+  ctx.fillStyle = '#F5EDD8';
+  ctx.roundRect(sx - 16, sy - 65, 32, 44, 4); ctx.fill();
+
+  // ── SAFFRON CLOSED VEST (over kurta) ──
+  ctx.fillStyle = '#CC5500';
+  ctx.roundRect(sx - 16, sy - 65, 32, 44, 3); ctx.fill();
+  // V-neck opening revealing kurta underneath
+  ctx.fillStyle = '#F5EDD8';
+  ctx.beginPath();
+  ctx.moveTo(sx - 8, sy - 65);
+  ctx.lineTo(sx,     sy - 50);
+  ctx.lineTo(sx + 8, sy - 65);
+  ctx.fill();
+  // Collar detail
+  ctx.fillStyle = '#EDE0C8';
+  ctx.beginPath();
+  ctx.moveTo(sx - 5, sy - 65); ctx.lineTo(sx, sy - 57); ctx.lineTo(sx + 5, sy - 65);
+  ctx.fill();
+  // Vest buttons
+  ctx.fillStyle = '#7A2E00';
+  ctx.beginPath(); ctx.arc(sx, sy - 44, 2, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(sx, sy - 35, 2, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(sx, sy - 26, 2, 0, Math.PI * 2); ctx.fill();
+  // Vest outline stitch
+  ctx.strokeStyle = '#7A2E00'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.roundRect(sx - 16, sy - 65, 32, 44, 3); ctx.stroke();
+
+  // ── ARMS (kurta sleeves) ──
+  ctx.fillStyle = '#F5EDD8';
+  ctx.fillRect(sx - 22, sy - 63, 8, 28);
+  ctx.fillRect(sx + 14, sy - 63, 8, 28);
+
+  // ── HEAD – 75 year old ──
+  ctx.fillStyle = '#C8894A';
+  ctx.beginPath(); ctx.arc(sx, sy - 80, 12, 0, Math.PI * 2); ctx.fill();
+
+  // White/silver hair – fuller, side-parted (not wispy receding)
+  ctx.fillStyle = '#D0D0D0';
+  ctx.beginPath(); ctx.arc(sx, sy - 80, 12, Math.PI * 1.08, 0.08); ctx.fill();
+  ctx.fillStyle = '#C0C0C0';
+  ctx.beginPath(); ctx.arc(sx - 2, sy - 88, 10, Math.PI * 0.88, Math.PI * 1.7); ctx.fill();
+  // Hair texture strokes
+  ctx.strokeStyle = '#AAAAAA'; ctx.lineWidth = 0.9;
+  for (let i = 0; i < 6; i++) {
+    ctx.beginPath();
+    ctx.moveTo(sx - 11 + i * 4, sy - 87);
+    ctx.quadraticCurveTo(sx - 9 + i * 4, sy - 93, sx - 7 + i * 4, sy - 88);
+    ctx.stroke();
+  }
+
+  // Natural beard – shaped path following the jawline, not a flat arc
+  ctx.fillStyle = '#DCDCDC';
+  ctx.beginPath();
+  ctx.moveTo(sx - 11, sy - 76);
+  ctx.quadraticCurveTo(sx - 14, sy - 70, sx - 9,  sy - 63);
+  ctx.quadraticCurveTo(sx - 3,  sy - 60, sx,      sy - 59);
+  ctx.quadraticCurveTo(sx + 3,  sy - 60, sx + 9,  sy - 63);
+  ctx.quadraticCurveTo(sx + 14, sy - 70, sx + 11, sy - 76);
+  ctx.closePath();
+  ctx.fill();
+  // Inner beard layer for depth
+  ctx.fillStyle = '#C8C8C8';
+  ctx.beginPath();
+  ctx.moveTo(sx - 8, sy - 75);
+  ctx.quadraticCurveTo(sx - 10, sy - 69, sx - 6, sy - 63);
+  ctx.quadraticCurveTo(sx,      sy - 62, sx + 6, sy - 63);
+  ctx.quadraticCurveTo(sx + 10, sy - 69, sx + 8, sy - 75);
+  ctx.closePath();
+  ctx.fill();
+  // Beard hair lines
+  ctx.strokeStyle = '#AAAAAA'; ctx.lineWidth = 0.7;
+  for (let i = 0; i < 6; i++) {
+    ctx.beginPath();
+    ctx.moveTo(sx - 7 + i * 2.8, sy - 74);
+    ctx.lineTo(sx - 6 + i * 2.8, sy - 62);
+    ctx.stroke();
+  }
+  // Moustache (slightly darker grey)
+  ctx.fillStyle = '#B8B8B8';
+  ctx.beginPath();
+  ctx.ellipse(sx, sy - 77, 6, 2.5, 0, 0, Math.PI); ctx.fill();
+
+  // Eyes
+  drawEyes(sx, sy - 82);
+
+  // Round Gandhi-style spectacles
+  ctx.strokeStyle = '#3a3a3a'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(sx - 5, sy - 82, 4.5, 0, Math.PI * 2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(sx + 5, sy - 82, 4.5, 0, Math.PI * 2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(sx - 0.5, sy - 82); ctx.lineTo(sx + 0.5, sy - 82); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(sx - 9.5, sy - 82); ctx.lineTo(sx - 13, sy - 81); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(sx + 9.5, sy - 82); ctx.lineTo(sx + 13, sy - 81); ctx.stroke();
+
+  // ── KICK VFX ──
+  if (isKicking && kickProg > 0.3) {
+    ctx.fillStyle = '#FF2200';
+    ctx.font = 'bold 22px Arial';
+    ctx.textAlign = 'center';
+    const vfxX = sx + 55 * f;
+    const vfxY = sy - 40 - kickProg * 12;
+    ctx.fillText('KICK!', vfxX, vfxY);
+    if (kickProg > 0.55) {
+      ctx.fillStyle = '#FFD700';
+      ctx.font = '16px Arial';
+      ctx.fillText('★', vfxX + 22 * f, vfxY - 10);
+      ctx.fillText('✦', vfxX - 18 * f, vfxY + 8);
+    }
+    ctx.textAlign = 'left';
+  }
+
+  ctx.restore();
+}
+
+// ── CHAMCHA – vest + boxers, protest placard ───────────────────
+function drawChamcha(npc) {
+  const sx = npc.x - gs.cameraX;
+  const sy = npc.y;
+  if (sx < -80 || sx > W + 80) return;
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.15)';
+  ctx.beginPath(); ctx.ellipse(sx, sy + 5, 14, 4, 0, 0, Math.PI * 2); ctx.fill();
+
+  const lo   = legOff(npc.frame, 5);
+  const f    = npc.facing;
+  const skin = npc.skin;
+
+  // ── LEGS (bare) ──
+  ctx.fillStyle = skin;
+  ctx.fillRect(sx - 12, sy - 20, 10, 23 + lo * f);
+  ctx.fillRect(sx +  2, sy - 20, 10, 23 - lo * f + (f < 0 ? lo * 2 : 0));
+
+  // ── BOXER SHORTS ──
+  ctx.fillStyle = npc.boxerColor;
+  ctx.roundRect(sx - 14, sy - 36, 28, 18, 3); ctx.fill();
+  if (npc.boxerStripes) {
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    for (let i = 0; i < 4; i++) ctx.fillRect(sx - 14 + i * 7, sy - 36, 3, 18);
+  } else {
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    [[-6, sy - 28],[4, sy - 28],[0, sy - 22]].forEach(([dx, cy]) => {
+      ctx.beginPath(); ctx.arc(sx + dx, cy, 2, 0, Math.PI * 2); ctx.fill();
+    });
+  }
+  ctx.fillStyle = 'rgba(0,0,0,0.22)';
+  ctx.fillRect(sx - 14, sy - 36, 28, 4);
+
+  // ── WHITE VEST / UNDERSHIRT ──
+  ctx.fillStyle = '#FFFFF5';
+  ctx.roundRect(sx - 13, sy - 63, 26, 28, 3); ctx.fill();
+  ctx.fillRect(sx - 13, sy - 68, 7, 8);   // left strap
+  ctx.fillRect(sx +  6, sy - 68, 7, 8);   // right strap
+  ctx.strokeStyle = '#ddd'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(sx - 4, sy - 62); ctx.lineTo(sx, sy - 56); ctx.lineTo(sx + 4, sy - 62);
+  ctx.stroke();
+
+  // ── ARMS ──
+  ctx.fillStyle = skin;
+  ctx.fillRect(sx - 20, sy - 63, 8, 26);
+  ctx.fillRect(sx + 12, sy - 63, 8, 26);
+
+  // ── HEAD ──
+  ctx.fillStyle = skin;
+  ctx.beginPath(); ctx.arc(sx, sy - 78, 11, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#1a0a00';
+  ctx.beginPath(); ctx.arc(sx, sy - 84, 11, Math.PI, 0); ctx.fill();
+  // Angry V-eyebrows
+  ctx.strokeStyle = '#333'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(sx - 8, sy - 82); ctx.lineTo(sx - 3, sy - 80); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(sx + 8, sy - 82); ctx.lineTo(sx + 3, sy - 80); ctx.stroke();
+  drawEyes(sx, sy - 79);
+
+  // ── PROTEST PLACARD ──
+  ctx.strokeStyle = skin; ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(sx + 14, sy - 54); ctx.lineTo(sx + 22, sy - 76); ctx.stroke();
+  ctx.strokeStyle = '#8B6040'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(sx + 22, sy - 76); ctx.lineTo(sx + 22, sy - 112); ctx.stroke();
+  const bw = 66, bh = 34;
+  const bx = sx + 22 - bw / 2;
+  const by = sy - 112 - bh;
+  ctx.fillStyle = '#FFF9E8';
+  ctx.fillRect(bx, by, bw, bh);
+  ctx.strokeStyle = '#CC3300'; ctx.lineWidth = 2;
+  ctx.strokeRect(bx, by, bw, bh);
+  ctx.fillStyle = '#CC3300';
+  ctx.fillRect(bx, by, 4, bh);
+  const slines = npc.slogan;
+  ctx.fillStyle = '#1a1a1a';
+  ctx.textAlign = 'center';
+  const lineH = bh / (slines.length + 0.5);
+  slines.forEach((line, i) => {
+    ctx.font = `bold ${slines.length === 1 ? 8 : 7}px Arial`;
+    ctx.fillText(line, bx + bw / 2, by + lineH * (i + 1));
+  });
+  ctx.textAlign = 'left';
+
+  if (npc.exclaimTimer > 0) {
+    ctx.fillStyle = '#FF4444';
+    ctx.font = 'bold 22px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('?', sx, sy - 122);
+    ctx.textAlign = 'left';
+  }
+
+  ctx.restore();
+}
+
+// ── PAPPU – the runaway leader ─────────────────────────────────
+function drawPappu(npc) {
+  const sx = npc.x - gs.cameraX;
+  const sy = npc.y;
+  if (sx < -80 || sx > W + 80) return;
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.beginPath(); ctx.ellipse(sx, sy + 5, 17, 5, 0, 0, Math.PI * 2); ctx.fill();
+
+  const lo = legOff(npc.frame, 6);
+  const f  = npc.facing;
+
+  // Black trousers
+  ctx.fillStyle = '#111';
+  ctx.fillRect(sx - 14, sy - 32, 12, 35 + lo * f);
+  ctx.fillRect(sx +  2, sy - 32, 12, 35 - lo * f + (f < 0 ? lo * 2 : 0));
+  // Belt
+  ctx.fillStyle = '#333'; ctx.fillRect(sx - 16, sy - 35, 32, 5);
+  ctx.fillStyle = '#DAA520'; ctx.fillRect(sx - 5, sy - 35, 10, 5);
+
+  // White T-shirt
+  ctx.fillStyle = '#FFFFFF';
+  ctx.roundRect(sx - 16, sy - 75, 32, 45, 4); ctx.fill();
+  ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(sx - 5, sy - 75); ctx.lineTo(sx, sy - 66); ctx.lineTo(sx + 5, sy - 75);
+  ctx.stroke();
+  // INC badge
+  ctx.fillStyle = '#006400';
+  ctx.roundRect(sx - 12, sy - 68, 22, 10, 2); ctx.fill();
+  ctx.fillStyle = '#FFF'; ctx.font = 'bold 7px Arial'; ctx.textAlign = 'center';
+  ctx.fillText('I N C', sx - 1, sy - 60); ctx.textAlign = 'left';
+
+  // Arms
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(sx - 24, sy - 75, 9, 32);
+  ctx.fillRect(sx + 15, sy - 75, 9, 32);
+
+  // Head (slightly larger)
+  ctx.fillStyle = npc.skin;
+  ctx.beginPath(); ctx.arc(sx, sy - 91, 13, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#666';
+  ctx.beginPath(); ctx.arc(sx, sy - 97, 13, Math.PI, 0); ctx.fill();
+  // Sunglasses
+  ctx.fillStyle = '#111';
+  ctx.roundRect(sx - 11, sy - 95, 9, 6, 2); ctx.fill();
+  ctx.roundRect(sx + 2,  sy - 95, 9, 6, 2); ctx.fill();
+  ctx.strokeStyle = '#555'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(sx - 2, sy - 93); ctx.lineTo(sx + 2, sy - 93); ctx.stroke();
+  // Moustache
+  ctx.fillStyle = '#333';
+  ctx.beginPath(); ctx.ellipse(sx, sy - 84, 7, 3, 0, 0, Math.PI); ctx.fill();
+
+  // PAPPU label
+  ctx.fillStyle = '#FFD700'; ctx.font = 'bold 10px Arial'; ctx.textAlign = 'center';
+  ctx.fillText('PAPPU', sx, sy - 108);
+  ctx.textAlign = 'left';
+
+  if (npc.spotted) {
+    ctx.fillStyle = '#FFD700'; ctx.font = 'bold 18px Arial'; ctx.textAlign = 'center';
+    ctx.fillText('★', sx, sy - 122);
+    ctx.textAlign = 'left';
+  }
+
+  ctx.restore();
+}
+
+// ── INNOCENT CIVILIAN ──────────────────────────────────────────
+function drawInnocent(npc) {
+  const sx = npc.x - gs.cameraX;
+  const sy = npc.y;
+  if (sx < -80 || sx > W + 80) return;
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.12)';
+  ctx.beginPath(); ctx.ellipse(sx, sy + 5, 14, 4, 0, 0, Math.PI * 2); ctx.fill();
+
+  const lo = legOff(npc.frame, 4);
+  const f  = npc.facing;
+
+  if (npc.isSaree) {
+    ctx.fillStyle = npc.sareeColor;
+    ctx.roundRect(sx - 12, sy - 68, 24, 71, 3); ctx.fill();
+    ctx.fillStyle = darken(npc.sareeColor, 25);
+    ctx.fillRect(sx - 11, sy - 68, 22, 22);
+    ctx.fillStyle = lighten(npc.sareeColor, 15);
+    ctx.beginPath();
+    ctx.moveTo(sx - 12, sy - 68);
+    ctx.quadraticCurveTo(sx - 30, sy - 42, sx - 22, sy - 20);
+    ctx.lineTo(sx - 12, sy - 20); ctx.fill();
+  } else {
+    ctx.fillStyle = npc.pantColor;
+    ctx.fillRect(sx - 12, sy - 28, 11, 31 + lo * f);
+    ctx.fillRect(sx +  1, sy - 28, 11, 31 - lo * f + (f < 0 ? lo * 2 : 0));
+    ctx.fillStyle = npc.shirtColor;
+    ctx.roundRect(sx - 14, sy - 65, 28, 40, 3); ctx.fill();
+    ctx.strokeStyle = darken(npc.shirtColor, 30); ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(sx - 5, sy - 65); ctx.lineTo(sx, sy - 58); ctx.lineTo(sx + 5, sy - 65);
+    ctx.stroke();
+    ctx.fillStyle = npc.shirtColor;
+    ctx.fillRect(sx - 21, sy - 65, 8, 28);
+    ctx.fillRect(sx + 13, sy - 65, 8, 28);
+  }
+
+  ctx.fillStyle = npc.skin;
+  ctx.beginPath(); ctx.arc(sx, sy - 76, 11, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#1a0a00';
+  ctx.beginPath(); ctx.arc(sx, sy - 82, 11, Math.PI, 0); ctx.fill();
+  drawEyes(sx, sy - 77);
+
+  if (npc.hasGlasses) {
+    ctx.strokeStyle = '#555'; ctx.lineWidth = 1.5;
+    ctx.strokeRect(sx - 9, sy - 80, 7, 5);
+    ctx.strokeRect(sx + 2, sy - 80, 7, 5);
+    ctx.beginPath(); ctx.moveTo(sx - 2, sy - 78); ctx.lineTo(sx + 2, sy - 78); ctx.stroke();
+  }
+
+  if (npc.exclaimTimer > 0) {
+    ctx.fillStyle = '#FF8C00'; ctx.font = 'bold 18px Arial'; ctx.textAlign = 'center';
+    ctx.fillText('!', sx, sy - 98);
+    ctx.textAlign = 'left';
+  }
+  ctx.restore();
+}
+
+// ── Colour utilities ────────────────────────────────────────────
+function darken(hex, amt) {
+  const n = parseInt(hex.replace('#',''), 16);
+  return `rgb(${Math.max(0,((n>>16)&255)-amt)},${Math.max(0,((n>>8)&255)-amt)},${Math.max(0,(n&255)-amt)})`;
+}
+function lighten(hex, amt) {
+  const n = parseInt(hex.replace('#',''), 16);
+  return `rgb(${Math.min(255,((n>>16)&255)+amt)},${Math.min(255,((n>>8)&255)+amt)},${Math.min(255,(n&255)+amt)})`;
+}
+
+// ================================================================
+//  BACKGROUND – LUTYENS DELHI
+// ================================================================
+function drawBackground(camX) {
+  const sky = ctx.createLinearGradient(0, 0, 0, STREET_Y);
+  sky.addColorStop(0, '#6ab0d8'); sky.addColorStop(1, '#c8e8f8');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, STREET_Y);
+
+  ctx.fillStyle = '#FFE060';
+  ctx.beginPath(); ctx.arc(820, 65, 38, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#FFD020'; ctx.lineWidth = 2;
+  for (let i = 0; i < 10; i++) {
+    const a = (i / 10) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(820 + Math.cos(a) * 42, 65 + Math.sin(a) * 42);
+    ctx.lineTo(820 + Math.cos(a) * 55, 65 + Math.sin(a) * 55);
+    ctx.stroke();
+  }
+
+  drawCloud(camX, 190, 90, 1.0);
+  drawCloud(camX, 420, 75, 0.8);
+  drawCloud(camX, 660, 105, 1.2);
+
+  const bStyle = LEVELS[gs.level].bgStyle;
+  const bW = 600;
+  const pCamX = camX * 0.85;
+  const first  = Math.floor(pCamX / bW) - 1;
+  for (let s = first; s <= first + 4; s++) {
+    const bx = s * bW - pCamX;
+    switch (bStyle) {
+      case 'jantar':     drawJantar(bx);     break;
+      case 'cp':         drawCP(bx);         break;
+      case 'parliament': drawParliament(bx); break;
+      case 'indiagate':  drawIndiaGate(bx);  break;
+      case 'rajpath':    drawRajpath(bx);    break;
+    }
+  }
+
+  const road = ctx.createLinearGradient(0, STREET_Y, 0, H);
+  road.addColorStop(0, '#8a8a8a'); road.addColorStop(0.5, '#727272'); road.addColorStop(1, '#5a5a5a');
+  ctx.fillStyle = road; ctx.fillRect(0, STREET_Y, W, H - STREET_Y);
+  ctx.setLineDash([50, 30]);
+  ctx.strokeStyle = '#E0D060'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(0, STREET_Y + 55); ctx.lineTo(W, STREET_Y + 55); ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = '#C8A870'; ctx.fillRect(0, GROUND_Y - 12, W, 28);
+  ctx.strokeStyle = '#B09060'; ctx.lineWidth = 1;
+  const tileOff = -(camX * 0.98 % 70);
+  for (let tx = tileOff; tx < W; tx += 70) ctx.strokeRect(tx, GROUND_Y - 12, 70, 28);
+
+  const ts = 220, tStart = Math.floor(camX / ts) * ts;
+  for (let tx = tStart - ts; tx < camX + W + ts; tx += ts) drawTree(tx - camX, GROUND_Y - 10);
+}
+
+function drawCloud(camX, baseX, y, scale) {
+  const ox = ((baseX - camX * 0.02) % (W + 200) + W + 200) % (W + 200) - 100;
+  ctx.fillStyle = 'rgba(255,255,255,0.75)';
+  const r = 25 * scale;
+  [[-r,0],[0,-r/2],[r,0],[r*1.5,r/3],[-r*1.5,r/3]].forEach(([dx,dy])=>{
+    ctx.beginPath(); ctx.arc(ox + dx, y + dy, r, 0, Math.PI * 2); ctx.fill();
+  });
+}
+
+function drawTree(x, y) {
+  ctx.fillStyle = '#7A3D0A'; ctx.fillRect(x - 7, y - 72, 14, 75);
+  ctx.fillStyle = '#1B5E1B'; ctx.beginPath(); ctx.arc(x, y - 88, 34, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#246824'; ctx.beginPath(); ctx.arc(x-12, y-98, 25, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(x+12, y-98, 25, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#2E8B2E'; ctx.beginPath(); ctx.arc(x, y-110, 18, 0, Math.PI*2); ctx.fill();
+}
+
+// ── Building styles ─────────────────────────────────────────────
+function drawJantar(sx) {
+  ctx.fillStyle = '#C8A060'; ctx.fillRect(sx, STREET_Y - 150, 580, 150);
+  ctx.fillStyle = '#B89050';
+  ctx.beginPath();
+  ctx.moveTo(sx+80,STREET_Y); ctx.lineTo(sx+210,STREET_Y-220); ctx.lineTo(sx+330,STREET_Y);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#D4A870';
+  for (let i=0;i<5;i++) ctx.fillRect(sx+110+i*15,STREET_Y-3-i*38,200-i*30,5);
+  ctx.strokeStyle='#A07840'; ctx.lineWidth=5;
+  ctx.beginPath(); ctx.arc(sx+430,STREET_Y-90,80,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(sx+430,STREET_Y-90,50,0,Math.PI*2); ctx.stroke();
+  ctx.fillStyle='#A07840';
+  for(let i=0;i<4;i++){ctx.fillRect(sx+10+i*18,STREET_Y-145,8,145);ctx.fillRect(sx+510+i*18,STREET_Y-145,8,145);}
+}
+
+function drawCP(sx) {
+  ctx.fillStyle='#F5EDD8'; ctx.fillRect(sx,STREET_Y-210,580,210);
+  ctx.fillStyle='#E8D8B8'; ctx.fillRect(sx,STREET_Y-215,580,8); ctx.fillRect(sx,STREET_Y-112,580,10);
+  ctx.fillStyle='#EDE0C0'; ctx.fillRect(sx,STREET_Y-102,580,102);
+  ctx.fillStyle='#D8C8A0';
+  for(let i=0;i<9;i++){const cx=sx+18+i*60;ctx.fillRect(cx-8,STREET_Y-102,16,102);ctx.fillRect(cx-11,STREET_Y-108,22,8);ctx.fillRect(cx-11,STREET_Y-2,22,4);}
+  ctx.fillStyle='rgba(210,190,160,0.4)'; ctx.strokeStyle='#C8B890'; ctx.lineWidth=2;
+  for(let i=0;i<8;i++){const ax=sx+26+i*60;ctx.beginPath();ctx.arc(ax+20,STREET_Y-66,22,Math.PI,0);ctx.fill();ctx.stroke();}
+  for(let i=0;i<5;i++){const wx=sx+38+i*112;ctx.strokeStyle='#C0B088';ctx.lineWidth=2;ctx.beginPath();ctx.arc(wx+22,STREET_Y-162,22,Math.PI,0);ctx.lineTo(wx+44,STREET_Y-180);ctx.lineTo(wx,STREET_Y-180);ctx.stroke();ctx.fillStyle='rgba(180,220,240,0.4)';ctx.fill();}
+}
+
+function drawParliament(sx) {
+  ctx.fillStyle='#B05838'; ctx.fillRect(sx,STREET_Y-270,580,270);
+  ctx.strokeStyle='#953020'; ctx.lineWidth=1.5;
+  for(let i=1;i<9;i++){ctx.beginPath();ctx.moveTo(sx,STREET_Y-i*30);ctx.lineTo(sx+580,STREET_Y-i*30);ctx.stroke();}
+  ctx.fillStyle='#C06848'; ctx.fillRect(sx+190,STREET_Y-295,200,295);
+  ctx.fillStyle='#D07858'; ctx.beginPath(); ctx.arc(sx+290,STREET_Y-295,75,Math.PI,0); ctx.fill();
+  ctx.fillStyle='#C06848'; ctx.beginPath(); ctx.arc(sx+290,STREET_Y-295,52,Math.PI,0); ctx.fill();
+  ctx.fillStyle='#FFD700'; ctx.fillRect(sx+287,STREET_Y-375,6,20);
+  ctx.beginPath(); ctx.arc(sx+290,STREET_Y-378,5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#A85030';
+  for(let i=0;i<5;i++) ctx.fillRect(sx+205+i*40,STREET_Y-240,14,240);
+  ['#C06848','#B86040','#C06848'].forEach((c,i)=>{ctx.fillStyle=c;ctx.fillRect(sx+40+i*210,STREET_Y-282,32,14);ctx.beginPath();ctx.arc(sx+56+i*210,STREET_Y-282,16,Math.PI,0);ctx.fill();});
+  ctx.fillStyle='#A05030';
+  [sx+20,sx+460].forEach(wx=>{for(let i=0;i<4;i++) ctx.fillRect(wx+i*30,STREET_Y-200,12,200);});
+}
+
+function drawIndiaGate(sx) {
+  ctx.fillStyle='#AAD8F0'; ctx.fillRect(sx+120,0,340,STREET_Y);
+  ctx.fillStyle='#D4A060';
+  ctx.fillRect(sx+170,STREET_Y-310,70,310); ctx.fillRect(sx+340,STREET_Y-310,70,310);
+  ctx.beginPath(); ctx.arc(sx+290,STREET_Y-310,120,Math.PI,0); ctx.fill();
+  ctx.fillStyle='#AAD8F0'; ctx.beginPath(); ctx.arc(sx+290,STREET_Y-290,82,Math.PI,0); ctx.fill();
+  ctx.fillRect(sx+208,STREET_Y-290,164,290);
+  ctx.fillStyle='#C09050'; ctx.fillRect(sx+150,STREET_Y-330,280,22);
+  ctx.fillStyle='#B08040'; ctx.fillRect(sx+210,STREET_Y-265,160,25);
+  ctx.fillStyle='#8B6020'; ctx.font='bold 8px Georgia'; ctx.textAlign='center';
+  ctx.fillText('INDIA GATE',sx+290,STREET_Y-249); ctx.textAlign='left';
+  ctx.fillStyle='#FF6020';
+  ctx.beginPath();ctx.moveTo(sx+282,STREET_Y-320);ctx.quadraticCurveTo(sx+290,STREET_Y-340,sx+298,STREET_Y-320);ctx.fill();
+  ctx.fillStyle='#FFD040';
+  ctx.beginPath();ctx.moveTo(sx+285,STREET_Y-322);ctx.quadraticCurveTo(sx+290,STREET_Y-336,sx+295,STREET_Y-322);ctx.fill();
+  ctx.fillStyle='#4CAF50'; ctx.fillRect(sx,STREET_Y-18,580,22);
+  ctx.fillStyle='#66BB6A'; ctx.fillRect(sx,STREET_Y-18,580,10);
+}
+
+function drawRajpath(sx) {
+  ctx.fillStyle='#C8A878'; ctx.fillRect(sx,STREET_Y-240,580,240);
+  ctx.fillStyle='#B89060'; ctx.beginPath(); ctx.arc(sx+290,STREET_Y-240,90,Math.PI,0); ctx.fill();
+  ctx.fillStyle='#C8A070'; ctx.beginPath(); ctx.arc(sx+290,STREET_Y-240,64,Math.PI,0); ctx.fill();
+  ctx.fillStyle='#B89060'; ctx.fillRect(sx+240,STREET_Y-242,100,12);
+  ctx.fillStyle='#DAA520'; ctx.fillRect(sx+287,STREET_Y-335,6,20);
+  ctx.fillStyle='#FF8C00'; ctx.fillRect(sx+293,STREET_Y-335,40,9);
+  ctx.fillStyle='#FFFFFF'; ctx.fillRect(sx+293,STREET_Y-326,40,9);
+  ctx.fillStyle='#138808'; ctx.fillRect(sx+293,STREET_Y-317,40,9);
+  ctx.strokeStyle='#000080'; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(sx+313,STREET_Y-321,4,0,Math.PI*2); ctx.stroke();
+  ctx.fillStyle='#D4B888';
+  for(let i=0;i<10;i++){ctx.fillRect(sx+20+i*54,STREET_Y-180,16,180);ctx.fillRect(sx+14+i*54,STREET_Y-186,28,9);}
+  ctx.fillStyle='#E0C8A0'; ctx.fillRect(sx,STREET_Y-192,580,14); ctx.fillRect(sx,STREET_Y-248,580,10);
+  for(let i=0;i<4;i++){ctx.fillStyle='#C8A060';ctx.fillRect(sx+60+i*150,STREET_Y-260,30,18);ctx.beginPath();ctx.arc(sx+75+i*150,STREET_Y-260,15,Math.PI,0);ctx.fill();}
+}
+
+// ================================================================
+//  CATCH EFFECTS
+// ================================================================
+function drawCaughtEffects() {
+  for (const npc of npcs) {
+    if (!npc.caught) continue;
+    const sx = npc.x - gs.cameraX;
+    if (sx < -80 || sx > W + 80) continue;
+    const age = npc.catchAge;
+    if (age < 1200) {
+      ctx.save(); ctx.globalAlpha = 1 - age / 1200;
+      ctx.fillStyle = npc.type === 'pappu' ? '#FFD700' : '#00FF88';
+      ctx.font = 'bold 15px Arial'; ctx.textAlign = 'center';
+      ctx.fillText(npc.type === 'pappu' ? '★ PAPPU CAUGHT!' : '✓ CAUGHT!', sx, npc.y - 90 - age / 25);
+      ctx.restore();
+    }
+  }
+}
+
+// ================================================================
+//  HUD
+// ================================================================
+function drawHUD() {
+  ctx.fillStyle = 'rgba(0,0,0,0.62)'; ctx.fillRect(0, 0, W, 42);
+
+  ctx.fillStyle = '#FF8C00'; ctx.font = 'bold 15px Georgia';
+  ctx.fillText(`📍 ${LEVELS[gs.level].name}`, 10, 26);
+
+  ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 16px Arial';
+  ctx.textAlign = 'center'; ctx.fillText(`Score: ${gs.score}`, W / 2, 26); ctx.textAlign = 'left';
+
+  ctx.fillStyle = '#AAD4FF'; ctx.font = '14px Arial';
+  ctx.fillText(`Found: ${gs.found}/${gs.needed}`, W / 2 + 70, 26);
+
+  const tc = gs.time <= 10 ? '#FF4444' : gs.time <= 20 ? '#FFA040' : '#44FF88';
+  ctx.fillStyle = tc; ctx.font = 'bold 17px Arial';
+  ctx.textAlign = 'right'; ctx.fillText(`⏱ ${gs.time}s`, W - 8, 26); ctx.textAlign = 'left';
+
+  // Kick cooldown bar
+  const cdRatio = Math.max(0, 1 - player.kickCooldown / player.KICK_CD);
+  const barW = 80, barX = W - barW - 8, barY = 48;
+  ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(barX, barY, barW, 14);
+  ctx.fillStyle = cdRatio >= 1 ? '#FF4444' : `hsl(${cdRatio * 20},100%,45%)`;
+  ctx.fillRect(barX, barY, barW * cdRatio, 14);
+  ctx.strokeStyle = '#FF4444'; ctx.lineWidth = 1;
+  ctx.strokeRect(barX, barY, barW, 14);
+  ctx.fillStyle = '#FFF'; ctx.font = 'bold 9px Arial'; ctx.textAlign = 'center';
+  ctx.fillText(cdRatio >= 1 ? '🦵 KICK READY!' : '🦵 reloading…', barX + barW / 2, barY + 10);
+  ctx.textAlign = 'left';
+
+  drawMinimap();
+
+  if (gs.msgTimer > 0) {
+    const alpha = Math.min(1, gs.msgTimer / 400);
+    ctx.save(); ctx.globalAlpha = alpha;
+    ctx.fillStyle = 'rgba(10,10,10,0.8)';
+    ctx.roundRect(W / 2 - 220, 70, 440, 40, 8); ctx.fill();
+    ctx.fillStyle = gs.msg.includes('-') ? '#FF4444' : '#FFD700';
+    ctx.font = 'bold 16px Arial'; ctx.textAlign = 'center';
+    ctx.fillText(gs.msg, W / 2, 95);
+    ctx.textAlign = 'left'; ctx.restore();
+  }
+}
+
+function drawMinimap() {
+  const mmW = 130, mmH = 22, mmX = W - mmW - 8, mmY = 66;
+  ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(mmX, mmY, mmW, mmH);
+  for (const npc of npcs) {
+    if (npc.caught) continue;
+    const nx = mmX + (npc.x / WORLD_W) * mmW;
+    ctx.fillStyle = npc.type === 'pappu' ? '#FFD700' : npc.type === 'chamcha' ? '#FF4444' : '#555';
+    ctx.fillRect(nx - 1, mmY + 4, 3, mmH - 8);
+  }
+  const px = mmX + (player.x / WORLD_W) * mmW;
+  ctx.fillStyle = '#00FF88'; ctx.fillRect(px - 2, mmY + 2, 4, mmH - 4);
+  ctx.strokeStyle = '#FF8C00'; ctx.lineWidth = 1;
+  ctx.strokeRect(mmX, mmY, mmW, mmH);
+  ctx.fillStyle = '#999'; ctx.font = '9px Arial';
+  ctx.fillText('MAP', mmX + 2, mmY - 2);
+}
+
+// ================================================================
+//  SCREENS
+// ================================================================
+function drawMenu() {
+  // Rich layered dark background
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0,    '#1c0800');
+  g.addColorStop(0.4,  '#0d1f3c');
+  g.addColorStop(1,    '#060d1a');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+  // Saffron radial glow emanating from top-centre
+  const glow = ctx.createRadialGradient(W / 2, -30, 0, W / 2, -30, 500);
+  glow.addColorStop(0, 'rgba(255,140,0,0.4)');
+  glow.addColorStop(1, 'rgba(255,140,0,0)');
+  ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
+
+  // Subtle grid texture
+  ctx.strokeStyle = 'rgba(255,140,0,0.05)'; ctx.lineWidth = 1;
+  for (let y = 0; y < H; y += 38) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+  for (let x = 0; x < W; x += 55) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+
+  // Indian flag stripe at bottom
+  ctx.fillStyle = '#FF8C00'; ctx.fillRect(0, H - 60, W, 20);
+  ctx.fillStyle = '#FFFFFF';  ctx.fillRect(0, H - 40, W, 20);
+  ctx.fillStyle = '#138808';  ctx.fillRect(0, H - 20, W, 20);
+  // Ashoka Chakra on the white stripe
+  ctx.strokeStyle = '#000080'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(W / 2, H - 30, 8, 0, Math.PI * 2); ctx.stroke();
+  for (let i = 0; i < 24; i++) {
+    const a = (i / 24) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(W / 2, H - 30);
+    ctx.lineTo(W / 2 + Math.cos(a) * 8, H - 30 + Math.sin(a) * 8);
+    ctx.stroke();
+  }
+
+  // ── TITLE ──
+  ctx.textAlign = 'center';
+  // Drop shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.75)';
+  ctx.font = 'bold 44px Georgia';
+  ctx.fillText('Kicking the Anti-Nationals', W / 2 + 3, 78);
+  // Gradient title text
+  const titleGrad = ctx.createLinearGradient(0, 38, 0, 82);
+  titleGrad.addColorStop(0, '#FFE040');
+  titleGrad.addColorStop(0.5, '#FF8C00');
+  titleGrad.addColorStop(1, '#CC4400');
+  ctx.fillStyle = titleGrad;
+  ctx.font = 'bold 44px Georgia';
+  ctx.fillText('Kicking the Anti-Nationals', W / 2, 75);
+
+  // Subtitle
+  ctx.fillStyle = '#D4A84A';
+  ctx.font = 'italic 16px Georgia';
+  ctx.fillText('BJP Fights Back – Streets of New Delhi', W / 2, 103);
+
+  // Ornamental divider
+  ctx.strokeStyle = '#FF8C00'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(W / 2 - 200, 116); ctx.lineTo(W / 2 - 24, 116); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(W / 2 + 24,  116); ctx.lineTo(W / 2 + 200, 116); ctx.stroke();
+  ctx.fillStyle = '#FF8C00'; ctx.font = '13px Georgia';
+  ctx.fillText('✦', W / 2, 120);
+
+  // ── HOW TO PLAY panel ──
+  ctx.fillStyle = 'rgba(255,140,0,0.07)';
+  ctx.roundRect(W / 2 - 215, 130, 430, 210, 14); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,140,0,0.3)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.roundRect(W / 2 - 215, 130, 430, 210, 14); ctx.stroke();
+
+  ctx.fillStyle = '#FFD700'; ctx.font = 'bold 13px Arial';
+  ctx.fillText('HOW TO PLAY', W / 2, 152);
+  ctx.strokeStyle = 'rgba(255,215,0,0.25)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(W / 2 - 90, 159); ctx.lineTo(W / 2 + 90, 159); ctx.stroke();
+
+  const instrLines = [
+    ['🕹', 'Arrow Keys / WASD — move around'],
+    ['🦵', 'K or Space — KICK nearby chamchas!'],
+    ['🖱', 'Click on a CHAMCHA to grab them'],
+    ['👕', 'Chamchas: white VEST + BOXER SHORTS'],
+    ['👑', 'Level 5: Find PAPPU for +500–600 pts!'],
+    ['⚠️', 'Don\'t hit innocents — costs pts!'],
+  ];
+  ctx.textAlign = 'left';
+  instrLines.forEach(([icon, text], i) => {
+    const iy = 178 + i * 26;
+    ctx.fillStyle = '#FF8C00'; ctx.font = '13px Arial';
+    ctx.fillText(icon, W / 2 - 198, iy);
+    ctx.fillStyle = '#DDDDDD'; ctx.font = '13px Arial';
+    ctx.fillText(text, W / 2 - 172, iy);
+  });
+
+  // ── LEVEL TRACK ──
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.roundRect(W / 2 - 215, 352, 430, 60, 10); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,140,0,0.18)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.roundRect(W / 2 - 215, 352, 430, 60, 10); ctx.stroke();
+
+  ctx.fillStyle = '#FF8C00'; ctx.font = 'bold 11px Arial'; ctx.textAlign = 'center';
+  ctx.fillText('5 LEVELS ACROSS NEW DELHI', W / 2, 369);
+
+  const lvNames = ['Jantar\nMantar','Connaught\nPlace','Parliament\nSt','India\nGate','Rajpath\n(Pappu!)'];
+  lvNames.forEach((name, i) => {
+    const lx = W / 2 - 180 + i * 90;
+    ctx.fillStyle = i === 4 ? '#FFD700' : '#FF8C00';
+    ctx.font = i === 4 ? 'bold 10px Arial' : '10px Arial';
+    ctx.fillText(`${i + 1}.`, lx, 385);
+    const parts = name.split('\n');
+    ctx.fillStyle = '#AAAAAA'; ctx.font = '9px Arial';
+    parts.forEach((p, pi) => ctx.fillText(p, lx, 395 + pi * 10));
+  });
+
+  // ── PLAY BUTTON ──
+  ctx.textAlign = 'center';
+  const btnGrad = ctx.createLinearGradient(W / 2, 424, W / 2, 476);
+  btnGrad.addColorStop(0, '#FF7A00');
+  btnGrad.addColorStop(1, '#CC4400');
+  ctx.fillStyle = btnGrad;
+  ctx.roundRect(W / 2 - 95, 424, 190, 52, 12); ctx.fill();
+  ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.roundRect(W / 2 - 95, 424, 190, 52, 12); ctx.stroke();
+  ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 24px Georgia';
+  ctx.fillText('▶  PLAY', W / 2, 457);
+  ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.font = '11px Arial';
+  ctx.fillText('Click or Space / Enter', W / 2, 488);
+  ctx.textAlign = 'left';
+}
+
+function drawLevelComplete() {
+  ctx.fillStyle = 'rgba(0,0,0,0.78)'; ctx.fillRect(0, 0, W, H);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#FFD700'; ctx.font = 'bold 46px Georgia';
+  ctx.fillText('Level Complete!', W / 2, 160);
+  ctx.fillStyle = '#00FF88'; ctx.font = '26px Georgia';
+  ctx.fillText(LEVELS[gs.level].name + ' Cleared!', W / 2, 215);
+  ctx.fillStyle = '#FFFFFF'; ctx.font = '20px Arial';
+  ctx.fillText(`Level Score:  ${gs.score} pts`, W / 2, 270);
+  ctx.fillText(`Time Bonus:   +${gs.time * 10} pts`, W / 2, 305);
+  ctx.fillStyle = '#FFD700';
+  ctx.fillText(`Running Total:  ${gs.totalScore} pts`, W / 2, 345);
+  ctx.fillStyle = '#FF8C00'; ctx.font = '20px Arial';
+  const isLast = gs.level >= LEVELS.length - 1;
+  ctx.fillText(isLast ? 'Click / Space for Final Score!' : `Click / Space → ${LEVELS[gs.level + 1].name}`, W / 2, 420);
+  ctx.textAlign = 'left';
+}
+
+function drawGameOver() {
+  ctx.fillStyle = 'rgba(0,0,0,0.82)'; ctx.fillRect(0, 0, W, H);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#FF4444'; ctx.font = 'bold 52px Georgia'; ctx.fillText("Time's Up!", W / 2, 190);
+  ctx.fillStyle = '#FFA040'; ctx.font = '24px Arial'; ctx.fillText(LEVELS[gs.level].name, W / 2, 245);
+  ctx.fillStyle = '#FFFFFF'; ctx.font = '20px Arial';
+  ctx.fillText(`Caught ${gs.found} of ${gs.needed} chamchas`, W / 2, 295);
+  ctx.fillText(`Score: ${gs.score} pts`, W / 2, 335);
+  ctx.fillStyle = '#FF8C00'; ctx.font = '18px Arial';
+  ctx.fillText('Click or Space to Try Again', W / 2, 420);
+  ctx.textAlign = 'left';
+}
+
+let fwList = [];
+function drawWin() {
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#0a1f0a'); g.addColorStop(1, '#030a03');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+  if (Math.random() < 0.05) fwList.push({ x: rn(80, W-80), y: rn(40, 220), age:0, color:`hsl(${Math.random()*360},100%,65%)` });
+  fwList.forEach((f, i) => {
+    f.age += 0.04;
+    const r = f.age * 55;
+    ctx.fillStyle = f.color; ctx.globalAlpha = Math.max(0, 1 - f.age);
+    for (let d = 0; d < 10; d++) {
+      const a = (d / 10) * Math.PI * 2;
+      ctx.beginPath(); ctx.arc(f.x + Math.cos(a)*r, f.y + Math.sin(a)*r, 3, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    if (f.age > 1) fwList.splice(i, 1);
+  });
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#FFD700'; ctx.font = 'bold 48px Georgia'; ctx.fillText('Mission Complete!', W/2, 140);
+  ctx.fillStyle = '#FF8C00'; ctx.font = '26px Georgia';
+  ctx.fillText('All Anti-Nationals Dispersed!', W/2, 195);
+  ctx.fillStyle = '#FFFFFF'; ctx.font = '22px Georgia';
+  ctx.fillText('BJP Secures the Streets of Delhi!', W/2, 240);
+  ctx.fillStyle = '#FFD700'; ctx.font = '26px Arial';
+  ctx.fillText(`Final Score: ${gs.totalScore} pts`, W/2, 305);
+  const stars = gs.totalScore > 6000 ? 3 : gs.totalScore > 3500 ? 2 : 1;
+  ctx.font = '44px Arial'; ctx.fillText('⭐'.repeat(stars), W/2, 368);
+  ctx.fillStyle = '#FF8C00'; ctx.font = '20px Arial';
+  ctx.fillText('Click or Space to Play Again', W/2, 440);
+  ctx.textAlign = 'left';
+}
+
+// ================================================================
+//  MAIN LOOP
+// ================================================================
+function render(ts) {
+  const dt = Math.min(ts - lastTime, 50);
+  lastTime = ts;
+  ctx.clearRect(0, 0, W, H);
+
+  if (gs.phase === 'menu') {
+    drawMenu();
+  } else if (gs.phase === 'playing') {
+    drawBackground(gs.cameraX);
+    const sorted = [...npcs].sort((a, b) => a.y - b.y);
+    for (const npc of sorted) {
+      if (npc.caught) continue;
+      if (npc.type === 'innocent') drawInnocent(npc);
+      else if (npc.type === 'chamcha') drawChamcha(npc);
+      else if (npc.type === 'pappu')   drawPappu(npc);
+    }
+    drawProtagonist(player.x, player.y, player.frame, player.facing);
+    drawCaughtEffects();
+    drawHUD();
+    update(dt);
+  } else if (gs.phase === 'levelComplete') {
+    drawBackground(gs.cameraX); drawLevelComplete();
+  } else if (gs.phase === 'gameOver') {
+    drawBackground(gs.cameraX); drawGameOver();
+  } else if (gs.phase === 'win') {
+    drawWin();
+  }
+
+  requestAnimationFrame(render);
+}
+
+// ── Start ───────────────────────────────────────────────────────
+initPlayer();
+requestAnimationFrame(ts => { lastTime = ts; requestAnimationFrame(render); });
+
+})();
+</script>
+</body>
+</html>
