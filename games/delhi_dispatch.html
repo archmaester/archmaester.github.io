@@ -44,6 +44,61 @@
 (function () {
 'use strict';
 
+// ── AUDIO (Web Audio API – no external files) ──────────────────
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+function ensureAudio() {
+  if (!audioCtx) { try { audioCtx = new AudioCtx(); } catch(e){} }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function schedTone(ac, freq, type, vol, start, dur, freqEnd) {
+  const o = ac.createOscillator(), g = ac.createGain();
+  o.connect(g); g.connect(ac.destination);
+  o.type = type;
+  o.frequency.setValueAtTime(freq, start);
+  if (freqEnd) o.frequency.exponentialRampToValueAtTime(freqEnd, start + dur);
+  g.gain.setValueAtTime(vol, start);
+  g.gain.exponentialRampToValueAtTime(0.001, start + dur);
+  o.start(start); o.stop(start + dur + 0.02);
+}
+function sfxKick() {
+  const ac = ensureAudio(); if (!ac) return;
+  const t = ac.currentTime;
+  schedTone(ac, 320, 'square',   0.28, t,        0.06, 80);
+  schedTone(ac, 110, 'sawtooth', 0.22, t + 0.04, 0.15);
+}
+function sfxCatch() {
+  const ac = ensureAudio(); if (!ac) return;
+  const t = ac.currentTime;
+  [440, 554, 659].forEach((f, i) => schedTone(ac, f, 'sine', 0.25, t + i * 0.09, 0.10));
+}
+function sfxPenalty() {
+  const ac = ensureAudio(); if (!ac) return;
+  const t = ac.currentTime;
+  [280, 180].forEach((f, i) => schedTone(ac, f, 'square', 0.22, t + i * 0.16, 0.18));
+}
+function sfxPappu() {
+  const ac = ensureAudio(); if (!ac) return;
+  const t = ac.currentTime;
+  [523, 659, 784, 1047, 1319].forEach((f, i) => schedTone(ac, f, 'sine', 0.30, t + i * 0.10, 0.14));
+}
+function sfxLevelComplete() {
+  const ac = ensureAudio(); if (!ac) return;
+  const t = ac.currentTime;
+  [523, 659, 784, 1047].forEach((f, i) => schedTone(ac, f, 'sine', 0.28, t + i * 0.13, 0.15));
+  schedTone(ac, 1047, 'sine', 0.25, t + 0.58, 0.45);
+}
+function sfxPowerUp() {
+  const ac = ensureAudio(); if (!ac) return;
+  const t = ac.currentTime;
+  [600, 800, 1000, 1200, 1500, 1800].forEach((f, i) => schedTone(ac, f, 'sine', 0.18, t + i * 0.055, 0.08));
+}
+function sfxTimerWarn() {
+  const ac = ensureAudio(); if (!ac) return;
+  schedTone(ac, 880, 'square', 0.12, ac.currentTime, 0.07);
+}
+
 // ── roundRect polyfill ─────────────────────────────────────────
 if (!CanvasRenderingContext2D.prototype.roundRect) {
   CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
@@ -76,6 +131,57 @@ const CSHIRTS   = ['#4682B4','#8B0000','#006400','#4B0082','#FF4500','#2E8B57','
 const CPANTS    = ['#2F4F4F','#1C1C1C','#4a4a6a','#654321','#3a3a3a','#5a4030'];
 const SAREE_COL = ['#FF69B4','#8B008B','#DAA520','#FF1493','#1E90FF','#E91E63'];
 const BOXER_COL = ['#4169E1','#DC143C','#228B22','#FF8C00','#800080','#00CED1','#E91E63'];
+
+// ── POWER-UPS ──────────────────────────────────────────────────
+const PU_TYPES = [
+  { id:'speed',      color:'#FF8C00', glow:'rgba(255,140,0,0.55)',  symbol:'⚡', label:'SPEED BOOST!',  duration:6000 },
+  { id:'multiplier', color:'#FFD700', glow:'rgba(255,215,0,0.55)',  symbol:'★',  label:'2× SCORE!',     duration:8000 },
+  { id:'timefreeze', color:'#00BFFF', glow:'rgba(0,191,255,0.55)', symbol:'❄',  label:'TIME FREEZE!',  duration:5000 },
+  { id:'stunwave',   color:'#FF4500', glow:'rgba(255,69,0,0.55)',   symbol:'💥', label:'STUN WAVE!',    duration:0    },
+];
+let powerups = [];
+let puSpawnTimer = 0;
+const PU_SPAWN_INTERVAL = 14000;
+
+function spawnPowerup() {
+  if (powerups.length >= 3) return;
+  const type = PU_TYPES[Math.floor(Math.random() * PU_TYPES.length)];
+  powerups.push({ ...type, x: rn(300, WORLD_W - 300), y: GROUND_Y, age: 0, lifetime: 12000 });
+}
+
+function applyPowerup(pu) {
+  sfxPowerUp();
+  gs.msg = pu.label;
+  gs.msgTimer = 2200;
+  switch (pu.id) {
+    case 'speed':
+      player.effects.speed = pu.duration;
+      player.speed = 8;
+      break;
+    case 'multiplier':
+      player.effects.multiplier = pu.duration;
+      break;
+    case 'timefreeze':
+      player.effects.timefreeze = pu.duration;
+      break;
+    case 'stunwave': {
+      const mul = player.effects.multiplier > 0 ? 2 : 1;
+      let count = 0;
+      for (const npc of npcs) {
+        if (npc.caught) continue;
+        const sx = npc.x - gs.cameraX;
+        if (sx >= -50 && sx <= W + 50 && (npc.type === 'chamcha' || npc.type === 'pappu')) {
+          npc.caught = true; gs.found++;
+          gs.score += (npc.type === 'pappu' ? 600 : 250) * mul;
+          count++;
+        }
+      }
+      gs.msg = count > 0 ? `STUN WAVE! ${count} caught!` : 'STUN WAVE!';
+      gs.msgTimer = 2500;
+      break;
+    }
+  }
+}
 
 const SLOGANS = [
   ['PM IS',        'COMPROMISED!'],
@@ -121,6 +227,7 @@ function initPlayer() {
     kickAnim: 0,
     KICK_CD: 1500,
     KICK_DUR: 380,
+    effects: { speed: 0, multiplier: 0, timefreeze: 0 },
   };
 }
 
@@ -170,8 +277,11 @@ function initLevel(idx) {
   gs.cameraX = 0;
   gs.found = 0; gs.needed = lv.chamchas + (lv.hasPappu ? 1 : 0);
   gs.msg = ''; gs.msgTimer = 0;
+  gs.timerWarnPlayed = false;
   initPlayer();
   npcs = [];
+  powerups = [];
+  puSpawnTimer = PU_SPAWN_INTERVAL * 0.55;
   for (let i = 0; i < lv.innocents; i++) npcs.push(makeNPC('innocent', rn(300, WORLD_W - 300)));
   for (let i = 0; i < lv.chamchas;  i++) npcs.push(makeNPC('chamcha',  rn(300, WORLD_W - 300)));
   if (lv.hasPappu) npcs.push(makeNPC('pappu', rn(800, WORLD_W - 800)));
@@ -204,8 +314,10 @@ function tryKick() {
   if (player.kickCooldown > 0) return;
   player.kickCooldown = player.KICK_CD;
   player.kickAnim    = player.KICK_DUR;
+  sfxKick();
 
   const RANGE_X = 95, RANGE_Y = 38;
+  const mul = player.effects.multiplier > 0 ? 2 : 1;
   let hit = false;
   for (const npc of npcs) {
     if (npc.caught) continue;
@@ -216,13 +328,16 @@ function tryKick() {
       if (npc.type === 'chamcha' || npc.type === 'pappu') {
         npc.caught = true;
         gs.found++;
-        const pts = npc.type === 'pappu' ? 600 : 250;
+        const base = npc.type === 'pappu' ? 600 : 250;
+        const pts = base * mul;
         gs.score += pts;
+        npc.type === 'pappu' ? sfxPappu() : sfxCatch();
         gs.msg = npc.type === 'pappu'
-          ? `PAPPU KICKED OUT! +600 pts!`
-          : `KICK CONNECTS! +250 pts!  (${gs.found}/${gs.needed})`;
+          ? `PAPPU KICKED OUT! +${pts} pts!`
+          : `KICK CONNECTS! +${pts} pts!  (${gs.found}/${gs.needed})`;
         gs.msgTimer = 2200;
       } else {
+        sfxPenalty();
         gs.score = Math.max(0, gs.score - 75);
         gs.msg = 'Kicked an innocent! -75 pts!';
         gs.msgTimer = 1500;
@@ -243,19 +358,23 @@ canvas.addEventListener('click', e => {
   const r  = canvas.getBoundingClientRect();
   const sx = e.clientX - r.left;
   const sy = e.clientY - r.top;
+  const mul = player.effects.multiplier > 0 ? 2 : 1;
   for (const npc of npcs) {
     if (npc.caught) continue;
     const nx = npc.x - gs.cameraX;
     if (Math.abs(sx - nx) < 26 && Math.abs(sy - (npc.y - 38)) < 45) {
       if (npc.type === 'chamcha' || npc.type === 'pappu') {
         npc.caught = true; gs.found++;
-        const pts = npc.type === 'pappu' ? 500 : 200;
+        const base = npc.type === 'pappu' ? 500 : 200;
+        const pts = base * mul;
         gs.score += pts;
+        npc.type === 'pappu' ? sfxPappu() : sfxCatch();
         gs.msg = npc.type === 'pappu'
-          ? `Pappu Caught! +500 pts!`
-          : `Chamcha Found! +200 pts!  (${gs.found}/${gs.needed})`;
+          ? `Pappu Caught! +${pts} pts!`
+          : `Chamcha Found! +${pts} pts!  (${gs.found}/${gs.needed})`;
         gs.msgTimer = 2500;
       } else {
+        sfxPenalty();
         gs.score = Math.max(0, gs.score - 50);
         gs.msg = 'Wrong person! -50 pts';
         gs.msgTimer = 1500;
@@ -273,7 +392,13 @@ function update(dt) {
   if (gs.phase !== 'playing') return;
 
   timeAccum += dt;
-  if (timeAccum >= 1000) { timeAccum -= 1000; gs.time--; }
+  if (timeAccum >= 1000 && player.effects.timefreeze <= 0) {
+    timeAccum -= 1000;
+    gs.time--;
+    if (gs.time <= 10) sfxTimerWarn();
+  } else if (player.effects.timefreeze > 0) {
+    timeAccum = Math.min(timeAccum, 999);
+  }
   if (gs.time <= 0) { gs.phase = 'gameOver'; return; }
 
   if (player.kickCooldown > 0) player.kickCooldown -= dt;
@@ -339,9 +464,33 @@ function update(dt) {
 
   if (gs.msgTimer > 0) gs.msgTimer -= dt;
 
+  // ── Active effects tick ──
+  if (player.effects.speed > 0) {
+    player.effects.speed -= dt;
+    if (player.effects.speed <= 0) { player.effects.speed = 0; player.speed = 4; }
+  }
+  if (player.effects.multiplier > 0) player.effects.multiplier = Math.max(0, player.effects.multiplier - dt);
+  if (player.effects.timefreeze > 0) player.effects.timefreeze = Math.max(0, player.effects.timefreeze - dt);
+
+  // ── Power-up spawn ──
+  puSpawnTimer -= dt;
+  if (puSpawnTimer <= 0) { puSpawnTimer = PU_SPAWN_INTERVAL; spawnPowerup(); }
+
+  // ── Power-up collection & expiry ──
+  for (let i = powerups.length - 1; i >= 0; i--) {
+    const pu = powerups[i];
+    pu.age += dt;
+    if (pu.age >= pu.lifetime) { powerups.splice(i, 1); continue; }
+    if (Math.abs(player.x - pu.x) < 32 && Math.abs(player.y - pu.y) < 32) {
+      applyPowerup(pu);
+      powerups.splice(i, 1);
+    }
+  }
+
   if (npcs.filter(n => !n.caught && (n.type === 'chamcha' || n.type === 'pappu')).length === 0) {
     gs.totalScore += gs.score + gs.time * 10;
     gs.phase = 'levelComplete';
+    sfxLevelComplete();
   }
 }
 
@@ -365,9 +514,12 @@ function drawProtagonist(wx, wy, frame, facing) {
 
   ctx.save();
 
-  // Shadow
-  ctx.fillStyle = 'rgba(0,0,0,0.18)';
-  ctx.beginPath(); ctx.ellipse(sx, sy + 5, 16, 4, 0, 0, Math.PI * 2); ctx.fill();
+  // Soft radial shadow blob
+  const protShadow = ctx.createRadialGradient(sx, sy + 4, 0, sx, sy + 4, 18);
+  protShadow.addColorStop(0, 'rgba(0,0,0,0.32)');
+  protShadow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = protShadow;
+  ctx.beginPath(); ctx.ellipse(sx, sy + 4, 18, 6, 0, 0, Math.PI * 2); ctx.fill();
 
   const isKicking = player.kickAnim > 0;
   const kickProg  = isKicking ? Math.sin((1 - player.kickAnim / player.KICK_DUR) * Math.PI) : 0;
@@ -394,12 +546,20 @@ function drawProtagonist(wx, wy, frame, facing) {
     ctx.fillRect(sx +  2, sy - 26, 12, 29 - lo * f + (f < 0 ? lo * 2 : 0));
   }
 
-  // ── KURTA BODY (base layer) ──
-  ctx.fillStyle = '#F5EDD8';
+  // ── KURTA BODY (base layer) – subtle L→R gradient ──
+  const kurtaGrad = ctx.createLinearGradient(sx - 16, 0, sx + 16, 0);
+  kurtaGrad.addColorStop(0,   '#EDE3C6');
+  kurtaGrad.addColorStop(0.5, '#F5EDD8');
+  kurtaGrad.addColorStop(1,   '#DECCA8');
+  ctx.fillStyle = kurtaGrad;
   ctx.roundRect(sx - 16, sy - 65, 32, 44, 4); ctx.fill();
 
-  // ── SAFFRON CLOSED VEST (over kurta) ──
-  ctx.fillStyle = '#CC5500';
+  // ── SAFFRON CLOSED VEST (over kurta) – L→R saffron gradient ──
+  const vestGrad = ctx.createLinearGradient(sx - 16, 0, sx + 16, 0);
+  vestGrad.addColorStop(0,   '#A03800');
+  vestGrad.addColorStop(0.5, '#D85800');
+  vestGrad.addColorStop(1,   '#B04000');
+  ctx.fillStyle = vestGrad;
   ctx.roundRect(sx - 16, sy - 65, 32, 44, 3); ctx.fill();
   // V-neck opening revealing kurta underneath
   ctx.fillStyle = '#F5EDD8';
@@ -427,8 +587,11 @@ function drawProtagonist(wx, wy, frame, facing) {
   ctx.fillRect(sx - 22, sy - 63, 8, 28);
   ctx.fillRect(sx + 14, sy - 63, 8, 28);
 
-  // ── HEAD – 75 year old ──
-  ctx.fillStyle = '#C8894A';
+  // ── HEAD – 75 year old – radial skin gradient ──
+  const headGrad = ctx.createRadialGradient(sx - 3, sy - 83, 1, sx, sy - 80, 13);
+  headGrad.addColorStop(0, '#D89A5C');
+  headGrad.addColorStop(1, '#A86830');
+  ctx.fillStyle = headGrad;
   ctx.beginPath(); ctx.arc(sx, sy - 80, 12, 0, Math.PI * 2); ctx.fill();
 
   // White/silver hair – fuller, side-parted (not wispy receding)
@@ -515,8 +678,11 @@ function drawChamcha(npc) {
   if (sx < -80 || sx > W + 80) return;
 
   ctx.save();
-  ctx.fillStyle = 'rgba(0,0,0,0.15)';
-  ctx.beginPath(); ctx.ellipse(sx, sy + 5, 14, 4, 0, 0, Math.PI * 2); ctx.fill();
+  const chamShadow = ctx.createRadialGradient(sx, sy + 4, 0, sx, sy + 4, 16);
+  chamShadow.addColorStop(0, 'rgba(0,0,0,0.30)');
+  chamShadow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = chamShadow;
+  ctx.beginPath(); ctx.ellipse(sx, sy + 4, 16, 5, 0, 0, Math.PI * 2); ctx.fill();
 
   const lo   = legOff(npc.frame, 5);
   const f    = npc.facing;
@@ -527,8 +693,11 @@ function drawChamcha(npc) {
   ctx.fillRect(sx - 12, sy - 20, 10, 23 + lo * f);
   ctx.fillRect(sx +  2, sy - 20, 10, 23 - lo * f + (f < 0 ? lo * 2 : 0));
 
-  // ── BOXER SHORTS ──
-  ctx.fillStyle = npc.boxerColor;
+  // ── BOXER SHORTS – top→bottom gradient ──
+  const boxerGrad = ctx.createLinearGradient(0, sy - 36, 0, sy - 18);
+  boxerGrad.addColorStop(0, lighten(npc.boxerColor, 22));
+  boxerGrad.addColorStop(1, darken(npc.boxerColor, 22));
+  ctx.fillStyle = boxerGrad;
   ctx.roundRect(sx - 14, sy - 36, 28, 18, 3); ctx.fill();
   if (npc.boxerStripes) {
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
@@ -542,8 +711,12 @@ function drawChamcha(npc) {
   ctx.fillStyle = 'rgba(0,0,0,0.22)';
   ctx.fillRect(sx - 14, sy - 36, 28, 4);
 
-  // ── WHITE VEST / UNDERSHIRT ──
-  ctx.fillStyle = '#FFFFF5';
+  // ── WHITE VEST / UNDERSHIRT – slight L→R gradient ──
+  const vestCGrad = ctx.createLinearGradient(sx - 13, 0, sx + 13, 0);
+  vestCGrad.addColorStop(0,   '#EEEEE6');
+  vestCGrad.addColorStop(0.5, '#FFFFF5');
+  vestCGrad.addColorStop(1,   '#E8E8E0');
+  ctx.fillStyle = vestCGrad;
   ctx.roundRect(sx - 13, sy - 63, 26, 28, 3); ctx.fill();
   ctx.fillRect(sx - 13, sy - 68, 7, 8);   // left strap
   ctx.fillRect(sx +  6, sy - 68, 7, 8);   // right strap
@@ -612,22 +785,32 @@ function drawPappu(npc) {
   if (sx < -80 || sx > W + 80) return;
 
   ctx.save();
-  ctx.fillStyle = 'rgba(0,0,0,0.18)';
-  ctx.beginPath(); ctx.ellipse(sx, sy + 5, 17, 5, 0, 0, Math.PI * 2); ctx.fill();
+  const pappuShadow = ctx.createRadialGradient(sx, sy + 4, 0, sx, sy + 4, 20);
+  pappuShadow.addColorStop(0, 'rgba(0,0,0,0.34)');
+  pappuShadow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = pappuShadow;
+  ctx.beginPath(); ctx.ellipse(sx, sy + 4, 20, 6, 0, 0, Math.PI * 2); ctx.fill();
 
   const lo = legOff(npc.frame, 6);
   const f  = npc.facing;
 
-  // Black trousers
-  ctx.fillStyle = '#111';
+  // Black trousers – L→R gradient
+  const trouserGrad = ctx.createLinearGradient(sx - 14, 0, sx + 14, 0);
+  trouserGrad.addColorStop(0,   '#0a0a0a');
+  trouserGrad.addColorStop(0.5, '#282828');
+  trouserGrad.addColorStop(1,   '#0e0e0e');
+  ctx.fillStyle = trouserGrad;
   ctx.fillRect(sx - 14, sy - 32, 12, 35 + lo * f);
   ctx.fillRect(sx +  2, sy - 32, 12, 35 - lo * f + (f < 0 ? lo * 2 : 0));
   // Belt
   ctx.fillStyle = '#333'; ctx.fillRect(sx - 16, sy - 35, 32, 5);
   ctx.fillStyle = '#DAA520'; ctx.fillRect(sx - 5, sy - 35, 10, 5);
 
-  // White T-shirt
-  ctx.fillStyle = '#FFFFFF';
+  // White T-shirt – top→bottom gradient
+  const shirtPGrad = ctx.createLinearGradient(0, sy - 75, 0, sy - 30);
+  shirtPGrad.addColorStop(0, '#FFFFFF');
+  shirtPGrad.addColorStop(1, '#D6D6D6');
+  ctx.fillStyle = shirtPGrad;
   ctx.roundRect(sx - 16, sy - 75, 32, 45, 4); ctx.fill();
   ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1.5;
   ctx.beginPath();
@@ -680,14 +863,22 @@ function drawInnocent(npc) {
   if (sx < -80 || sx > W + 80) return;
 
   ctx.save();
-  ctx.fillStyle = 'rgba(0,0,0,0.12)';
-  ctx.beginPath(); ctx.ellipse(sx, sy + 5, 14, 4, 0, 0, Math.PI * 2); ctx.fill();
+  const innocShadow = ctx.createRadialGradient(sx, sy + 4, 0, sx, sy + 4, 16);
+  innocShadow.addColorStop(0, 'rgba(0,0,0,0.26)');
+  innocShadow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = innocShadow;
+  ctx.beginPath(); ctx.ellipse(sx, sy + 4, 16, 5, 0, 0, Math.PI * 2); ctx.fill();
 
   const lo = legOff(npc.frame, 4);
   const f  = npc.facing;
 
   if (npc.isSaree) {
-    ctx.fillStyle = npc.sareeColor;
+    // Saree – L→R gradient
+    const sareeGrad = ctx.createLinearGradient(sx - 12, 0, sx + 12, 0);
+    sareeGrad.addColorStop(0,   darken(npc.sareeColor, 18));
+    sareeGrad.addColorStop(0.5, npc.sareeColor);
+    sareeGrad.addColorStop(1,   lighten(npc.sareeColor, 12));
+    ctx.fillStyle = sareeGrad;
     ctx.roundRect(sx - 12, sy - 68, 24, 71, 3); ctx.fill();
     ctx.fillStyle = darken(npc.sareeColor, 25);
     ctx.fillRect(sx - 11, sy - 68, 22, 22);
@@ -700,7 +891,12 @@ function drawInnocent(npc) {
     ctx.fillStyle = npc.pantColor;
     ctx.fillRect(sx - 12, sy - 28, 11, 31 + lo * f);
     ctx.fillRect(sx +  1, sy - 28, 11, 31 - lo * f + (f < 0 ? lo * 2 : 0));
-    ctx.fillStyle = npc.shirtColor;
+    // Shirt – L→R gradient
+    const shirtIGrad = ctx.createLinearGradient(sx - 14, 0, sx + 14, 0);
+    shirtIGrad.addColorStop(0,   darken(npc.shirtColor, 22));
+    shirtIGrad.addColorStop(0.5, npc.shirtColor);
+    shirtIGrad.addColorStop(1,   darken(npc.shirtColor, 16));
+    ctx.fillStyle = shirtIGrad;
     ctx.roundRect(sx - 14, sy - 65, 28, 40, 3); ctx.fill();
     ctx.strokeStyle = darken(npc.shirtColor, 30); ctx.lineWidth = 1;
     ctx.beginPath();
@@ -746,20 +942,33 @@ function lighten(hex, amt) {
 //  BACKGROUND – LUTYENS DELHI
 // ================================================================
 function drawBackground(camX) {
+  // 5-stop warm Delhi haze sky gradient
   const sky = ctx.createLinearGradient(0, 0, 0, STREET_Y);
-  sky.addColorStop(0, '#6ab0d8'); sky.addColorStop(1, '#c8e8f8');
+  sky.addColorStop(0,    '#2e5a8a');  // deep blue zenith
+  sky.addColorStop(0.28, '#5c9ec0');  // mid blue
+  sky.addColorStop(0.58, '#c8a06a');  // warm ochre
+  sky.addColorStop(0.82, '#d4a858');  // golden horizon
+  sky.addColorStop(1,    '#c0904a');  // hazy street-level warmth
   ctx.fillStyle = sky; ctx.fillRect(0, 0, W, STREET_Y);
 
-  ctx.fillStyle = '#FFE060';
-  ctx.beginPath(); ctx.arc(820, 65, 38, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = '#FFD020'; ctx.lineWidth = 2;
-  for (let i = 0; i < 10; i++) {
-    const a = (i / 10) * Math.PI * 2;
-    ctx.beginPath();
-    ctx.moveTo(820 + Math.cos(a) * 42, 65 + Math.sin(a) * 42);
-    ctx.lineTo(820 + Math.cos(a) * 55, 65 + Math.sin(a) * 55);
-    ctx.stroke();
-  }
+  // Sun – soft radial glow corona (no sharp spokes)
+  const sunX = 820, sunY = 65;
+  const sunGlow = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, 95);
+  sunGlow.addColorStop(0,    'rgba(255,245,160,1)');
+  sunGlow.addColorStop(0.22, 'rgba(255,220,80,0.85)');
+  sunGlow.addColorStop(0.5,  'rgba(255,170,30,0.38)');
+  sunGlow.addColorStop(1,    'rgba(255,130,0,0)');
+  ctx.fillStyle = sunGlow;
+  ctx.beginPath(); ctx.arc(sunX, sunY, 95, 0, Math.PI * 2); ctx.fill();
+  // Solid sun disc
+  ctx.fillStyle = '#FFE868';
+  ctx.beginPath(); ctx.arc(sunX, sunY, 34, 0, Math.PI * 2); ctx.fill();
+
+  // Horizon smog overlay
+  const smog = ctx.createLinearGradient(0, STREET_Y - 70, 0, STREET_Y);
+  smog.addColorStop(0, 'rgba(200,148,70,0)');
+  smog.addColorStop(1, 'rgba(175,115,50,0.30)');
+  ctx.fillStyle = smog; ctx.fillRect(0, STREET_Y - 70, W, 70);
 
   drawCloud(camX, 190, 90, 1.0);
   drawCloud(camX, 420, 75, 0.8);
@@ -780,15 +989,37 @@ function drawBackground(camX) {
     }
   }
 
+  // Road – 3-stop gradient
   const road = ctx.createLinearGradient(0, STREET_Y, 0, H);
-  road.addColorStop(0, '#8a8a8a'); road.addColorStop(0.5, '#727272'); road.addColorStop(1, '#5a5a5a');
+  road.addColorStop(0,   '#909090');
+  road.addColorStop(0.38,'#6e6e6e');
+  road.addColorStop(1,   '#505050');
   ctx.fillStyle = road; ctx.fillRect(0, STREET_Y, W, H - STREET_Y);
+  // Specular gloss strip at top of road
+  const gloss = ctx.createLinearGradient(0, STREET_Y, 0, STREET_Y + 20);
+  gloss.addColorStop(0, 'rgba(255,255,255,0.20)');
+  gloss.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = gloss; ctx.fillRect(0, STREET_Y, W, 20);
+  // Lane dashes with glow
+  ctx.save();
+  ctx.shadowColor = '#D8C840'; ctx.shadowBlur = 9;
   ctx.setLineDash([50, 30]);
   ctx.strokeStyle = '#E0D060'; ctx.lineWidth = 3;
   ctx.beginPath(); ctx.moveTo(0, STREET_Y + 55); ctx.lineTo(W, STREET_Y + 55); ctx.stroke();
   ctx.setLineDash([]);
+  ctx.shadowBlur = 0;
+  ctx.restore();
 
-  ctx.fillStyle = '#C8A870'; ctx.fillRect(0, GROUND_Y - 12, W, 28);
+  // Footpath – 3-stop warm gradient + top edge shadow
+  const footpath = ctx.createLinearGradient(0, GROUND_Y - 12, 0, GROUND_Y + 16);
+  footpath.addColorStop(0,   '#D8B880');
+  footpath.addColorStop(0.5, '#C8A870');
+  footpath.addColorStop(1,   '#A88850');
+  ctx.fillStyle = footpath; ctx.fillRect(0, GROUND_Y - 12, W, 28);
+  const fpEdge = ctx.createLinearGradient(0, GROUND_Y - 12, 0, GROUND_Y - 3);
+  fpEdge.addColorStop(0, 'rgba(0,0,0,0.28)');
+  fpEdge.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = fpEdge; ctx.fillRect(0, GROUND_Y - 12, W, 10);
   ctx.strokeStyle = '#B09060'; ctx.lineWidth = 1;
   const tileOff = -(camX * 0.98 % 70);
   for (let tx = tileOff; tx < W; tx += 70) ctx.strokeRect(tx, GROUND_Y - 12, 70, 28);
@@ -799,19 +1030,48 @@ function drawBackground(camX) {
 
 function drawCloud(camX, baseX, y, scale) {
   const ox = ((baseX - camX * 0.02) % (W + 200) + W + 200) % (W + 200) - 100;
-  ctx.fillStyle = 'rgba(255,255,255,0.75)';
   const r = 25 * scale;
-  [[-r,0],[0,-r/2],[r,0],[r*1.5,r/3],[-r*1.5,r/3]].forEach(([dx,dy])=>{
+  const puffs = [[-r,0],[0,-r/2],[r,0],[r*1.5,r/3],[-r*1.5,r/3]];
+  // Soft grey shadow below each puff
+  ctx.fillStyle = 'rgba(140,120,100,0.20)';
+  puffs.forEach(([dx,dy]) => {
+    ctx.beginPath(); ctx.arc(ox + dx, y + dy + r * 0.42, r * 0.82, 0, Math.PI * 2); ctx.fill();
+  });
+  // Main cloud puffs
+  ctx.fillStyle = 'rgba(255,255,255,0.84)';
+  puffs.forEach(([dx,dy]) => {
     ctx.beginPath(); ctx.arc(ox + dx, y + dy, r, 0, Math.PI * 2); ctx.fill();
   });
+  // White highlight arc top-left of the central puff
+  ctx.fillStyle = 'rgba(255,255,255,0.52)';
+  ctx.beginPath();
+  ctx.arc(ox - r * 0.28, y - r * 0.28, r * 0.58, Math.PI * 1.08, Math.PI * 1.82);
+  ctx.fill();
 }
 
 function drawTree(x, y) {
-  ctx.fillStyle = '#7A3D0A'; ctx.fillRect(x - 7, y - 72, 14, 75);
+  // Soft shadow blob beneath foliage
+  const treeShadow = ctx.createRadialGradient(x + 9, y + 3, 0, x + 9, y + 3, 30);
+  treeShadow.addColorStop(0, 'rgba(0,0,0,0.26)');
+  treeShadow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = treeShadow;
+  ctx.beginPath(); ctx.ellipse(x + 9, y + 3, 30, 8, 0, 0, Math.PI * 2); ctx.fill();
+  // Trunk – left-to-right gradient (dark bark → light bark)
+  const trunk = ctx.createLinearGradient(x - 7, 0, x + 7, 0);
+  trunk.addColorStop(0,   '#3e1c04');
+  trunk.addColorStop(0.5, '#8B4A12');
+  trunk.addColorStop(1,   '#5a2c08');
+  ctx.fillStyle = trunk; ctx.fillRect(x - 7, y - 72, 14, 75);
+  // Foliage layers
   ctx.fillStyle = '#1B5E1B'; ctx.beginPath(); ctx.arc(x, y - 88, 34, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#246824'; ctx.beginPath(); ctx.arc(x-12, y-98, 25, 0, Math.PI*2); ctx.fill();
   ctx.beginPath(); ctx.arc(x+12, y-98, 25, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#2E8B2E'; ctx.beginPath(); ctx.arc(x, y-110, 18, 0, Math.PI*2); ctx.fill();
+  // Pale highlight arc at top-left of canopy
+  ctx.fillStyle = 'rgba(110,210,70,0.32)';
+  ctx.beginPath();
+  ctx.arc(x - 14, y - 102, 20, Math.PI * 1.05, Math.PI * 1.78);
+  ctx.fill();
 }
 
 // ── Building styles ─────────────────────────────────────────────
@@ -828,6 +1088,12 @@ function drawJantar(sx) {
   ctx.beginPath(); ctx.arc(sx+430,STREET_Y-90,50,0,Math.PI*2); ctx.stroke();
   ctx.fillStyle='#A07840';
   for(let i=0;i<4;i++){ctx.fillRect(sx+10+i*18,STREET_Y-145,8,145);ctx.fillRect(sx+510+i*18,STREET_Y-145,8,145);}
+  // Window glow
+  ctx.save();
+  ctx.shadowColor = 'rgba(255,215,80,0.9)'; ctx.shadowBlur = 7;
+  ctx.fillStyle = 'rgba(255,210,75,0.62)';
+  for (let i = 0; i < 4; i++) ctx.fillRect(sx + 360 + i * 38, STREET_Y - 118, 18, 26);
+  ctx.shadowBlur = 0; ctx.restore();
 }
 
 function drawCP(sx) {
@@ -839,6 +1105,12 @@ function drawCP(sx) {
   ctx.fillStyle='rgba(210,190,160,0.4)'; ctx.strokeStyle='#C8B890'; ctx.lineWidth=2;
   for(let i=0;i<8;i++){const ax=sx+26+i*60;ctx.beginPath();ctx.arc(ax+20,STREET_Y-66,22,Math.PI,0);ctx.fill();ctx.stroke();}
   for(let i=0;i<5;i++){const wx=sx+38+i*112;ctx.strokeStyle='#C0B088';ctx.lineWidth=2;ctx.beginPath();ctx.arc(wx+22,STREET_Y-162,22,Math.PI,0);ctx.lineTo(wx+44,STREET_Y-180);ctx.lineTo(wx,STREET_Y-180);ctx.stroke();ctx.fillStyle='rgba(180,220,240,0.4)';ctx.fill();}
+  // Window glow – upper storey
+  ctx.save();
+  ctx.shadowColor = 'rgba(255,215,80,0.9)'; ctx.shadowBlur = 7;
+  ctx.fillStyle = 'rgba(255,210,75,0.55)';
+  for (let i = 0; i < 5; i++) ctx.fillRect(sx + 38 + i * 112, STREET_Y - 200, 26, 30);
+  ctx.shadowBlur = 0; ctx.restore();
 }
 
 function drawParliament(sx) {
@@ -855,6 +1127,12 @@ function drawParliament(sx) {
   ['#C06848','#B86040','#C06848'].forEach((c,i)=>{ctx.fillStyle=c;ctx.fillRect(sx+40+i*210,STREET_Y-282,32,14);ctx.beginPath();ctx.arc(sx+56+i*210,STREET_Y-282,16,Math.PI,0);ctx.fill();});
   ctx.fillStyle='#A05030';
   [sx+20,sx+460].forEach(wx=>{for(let i=0;i<4;i++) ctx.fillRect(wx+i*30,STREET_Y-200,12,200);});
+  // Window glow
+  ctx.save();
+  ctx.shadowColor = 'rgba(255,215,80,0.9)'; ctx.shadowBlur = 7;
+  ctx.fillStyle = 'rgba(255,210,75,0.55)';
+  for (let i = 0; i < 5; i++) ctx.fillRect(sx + 32 + i * 100, STREET_Y - 190, 18, 22);
+  ctx.shadowBlur = 0; ctx.restore();
 }
 
 function drawIndiaGate(sx) {
@@ -874,6 +1152,12 @@ function drawIndiaGate(sx) {
   ctx.beginPath();ctx.moveTo(sx+285,STREET_Y-322);ctx.quadraticCurveTo(sx+290,STREET_Y-336,sx+295,STREET_Y-322);ctx.fill();
   ctx.fillStyle='#4CAF50'; ctx.fillRect(sx,STREET_Y-18,580,22);
   ctx.fillStyle='#66BB6A'; ctx.fillRect(sx,STREET_Y-18,580,10);
+  // Eternal flame glow
+  ctx.save();
+  ctx.shadowColor = 'rgba(255,130,30,0.95)'; ctx.shadowBlur = 14;
+  ctx.fillStyle = 'rgba(255,160,40,0.80)';
+  ctx.beginPath(); ctx.arc(sx+290, STREET_Y-332, 7, 0, Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0; ctx.restore();
 }
 
 function drawRajpath(sx) {
@@ -890,6 +1174,12 @@ function drawRajpath(sx) {
   for(let i=0;i<10;i++){ctx.fillRect(sx+20+i*54,STREET_Y-180,16,180);ctx.fillRect(sx+14+i*54,STREET_Y-186,28,9);}
   ctx.fillStyle='#E0C8A0'; ctx.fillRect(sx,STREET_Y-192,580,14); ctx.fillRect(sx,STREET_Y-248,580,10);
   for(let i=0;i<4;i++){ctx.fillStyle='#C8A060';ctx.fillRect(sx+60+i*150,STREET_Y-260,30,18);ctx.beginPath();ctx.arc(sx+75+i*150,STREET_Y-260,15,Math.PI,0);ctx.fill();}
+  // Window glow – colonnade recesses
+  ctx.save();
+  ctx.shadowColor = 'rgba(255,215,80,0.9)'; ctx.shadowBlur = 7;
+  ctx.fillStyle = 'rgba(255,208,72,0.58)';
+  for (let i = 0; i < 9; i++) ctx.fillRect(sx + 28 + i * 58, STREET_Y - 162, 16, 22);
+  ctx.shadowBlur = 0; ctx.restore();
 }
 
 // ================================================================
@@ -902,10 +1192,21 @@ function drawCaughtEffects() {
     if (sx < -80 || sx > W + 80) continue;
     const age = npc.catchAge;
     if (age < 1200) {
-      ctx.save(); ctx.globalAlpha = 1 - age / 1200;
-      ctx.fillStyle = npc.type === 'pappu' ? '#FFD700' : '#00FF88';
+      const progress = age / 1200;
+      // Pop scale: starts large and settles to 1.0
+      const scale = age < 160 ? 1 + (1 - age / 160) * 0.65 : 1.0;
+      ctx.save();
+      ctx.globalAlpha = 1 - progress;
+      ctx.translate(sx, npc.y - 90 - age / 25);
+      ctx.scale(scale, scale);
+      const label = npc.type === 'pappu' ? '★ PAPPU CAUGHT!' : '✓ CAUGHT!';
+      const color  = npc.type === 'pappu' ? '#FFD700' : '#00FF88';
       ctx.font = 'bold 15px Arial'; ctx.textAlign = 'center';
-      ctx.fillText(npc.type === 'pappu' ? '★ PAPPU CAUGHT!' : '✓ CAUGHT!', sx, npc.y - 90 - age / 25);
+      // Dark stroke outline
+      ctx.strokeStyle = 'rgba(0,0,0,0.72)'; ctx.lineWidth = 3.5;
+      ctx.strokeText(label, 0, 0);
+      ctx.fillStyle = color;
+      ctx.fillText(label, 0, 0);
       ctx.restore();
     }
   }
@@ -915,7 +1216,13 @@ function drawCaughtEffects() {
 //  HUD
 // ================================================================
 function drawHUD() {
-  ctx.fillStyle = 'rgba(0,0,0,0.62)'; ctx.fillRect(0, 0, W, 42);
+  // Dark-blue gradient HUD bar
+  const hudGrad = ctx.createLinearGradient(0, 0, 0, 42);
+  hudGrad.addColorStop(0, 'rgba(8,18,46,0.92)');
+  hudGrad.addColorStop(1, 'rgba(4,10,26,0.84)');
+  ctx.fillStyle = hudGrad; ctx.fillRect(0, 0, W, 42);
+  // Saffron accent line at bottom of bar
+  ctx.fillStyle = '#FF8C00'; ctx.fillRect(0, 41, W, 1);
 
   ctx.fillStyle = '#FF8C00'; ctx.font = 'bold 15px Georgia';
   ctx.fillText(`📍 ${LEVELS[gs.level].name}`, 10, 26);
@@ -934,7 +1241,14 @@ function drawHUD() {
   const cdRatio = Math.max(0, 1 - player.kickCooldown / player.KICK_CD);
   const barW = 80, barX = W - barW - 8, barY = 48;
   ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(barX, barY, barW, 14);
-  ctx.fillStyle = cdRatio >= 1 ? '#FF4444' : `hsl(${cdRatio * 20},100%,45%)`;
+  if (cdRatio >= 1) {
+    ctx.fillStyle = '#FF4444';
+  } else {
+    const kickBarGrad = ctx.createLinearGradient(barX, 0, barX + barW, 0);
+    kickBarGrad.addColorStop(0, '#FF6800');
+    kickBarGrad.addColorStop(1, '#CC0000');
+    ctx.fillStyle = kickBarGrad;
+  }
   ctx.fillRect(barX, barY, barW * cdRatio, 14);
   ctx.strokeStyle = '#FF4444'; ctx.lineWidth = 1;
   ctx.strokeRect(barX, barY, barW, 14);
@@ -947,13 +1261,25 @@ function drawHUD() {
   if (gs.msgTimer > 0) {
     const alpha = Math.min(1, gs.msgTimer / 400);
     ctx.save(); ctx.globalAlpha = alpha;
-    ctx.fillStyle = 'rgba(10,10,10,0.8)';
+    ctx.fillStyle = 'rgba(10,10,10,0.82)';
     ctx.roundRect(W / 2 - 220, 70, 440, 40, 8); ctx.fill();
-    ctx.fillStyle = gs.msg.includes('-') ? '#FF4444' : '#FFD700';
+    const msgColor = gs.msg.includes('-') ? '#FF4444' : '#FFD700';
+    // Subtle coloured glow behind text
+    ctx.shadowColor = msgColor; ctx.shadowBlur = 14;
+    ctx.fillStyle = msgColor;
     ctx.font = 'bold 16px Arial'; ctx.textAlign = 'center';
     ctx.fillText(gs.msg, W / 2, 95);
+    ctx.shadowBlur = 0;
     ctx.textAlign = 'left'; ctx.restore();
   }
+}
+
+// ── Vignette overlay – cinematic dark edges ──────────────────────
+function drawVignette() {
+  const vgn = ctx.createRadialGradient(W / 2, H / 2, H * 0.24, W / 2, H / 2, H * 0.88);
+  vgn.addColorStop(0, 'rgba(0,0,0,0)');
+  vgn.addColorStop(1, 'rgba(0,0,0,0.46)');
+  ctx.fillStyle = vgn; ctx.fillRect(0, 0, W, H);
 }
 
 function drawMinimap() {
@@ -971,6 +1297,69 @@ function drawMinimap() {
   ctx.strokeRect(mmX, mmY, mmW, mmH);
   ctx.fillStyle = '#999'; ctx.font = '9px Arial';
   ctx.fillText('MAP', mmX + 2, mmY - 2);
+}
+
+// ── Power-up rendering ──────────────────────────────────────────
+function drawPowerUps() {
+  for (const pu of powerups) {
+    const sx = pu.x - gs.cameraX;
+    if (sx < -40 || sx > W + 40) continue;
+    const bob = Math.sin(pu.age * 0.003) * 5;
+    const sy  = pu.y - 28 + bob;
+    const fade = Math.min(1, (pu.lifetime - pu.age) / 2000);
+
+    ctx.save();
+    ctx.globalAlpha = fade;
+
+    // Glow halo
+    const grd = ctx.createRadialGradient(sx, sy, 0, sx, sy, 24);
+    grd.addColorStop(0, pu.glow);
+    grd.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grd;
+    ctx.beginPath(); ctx.arc(sx, sy, 24, 0, Math.PI * 2); ctx.fill();
+
+    // Dark circle
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.beginPath(); ctx.arc(sx, sy, 16, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = pu.color; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(sx, sy, 16, 0, Math.PI * 2); ctx.stroke();
+
+    // Symbol
+    ctx.fillStyle = pu.color;
+    ctx.font = 'bold 14px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(pu.symbol, sx, sy + 5);
+    ctx.textAlign = 'left';
+
+    ctx.restore();
+  }
+}
+
+// ── Active effects HUD badges ────────────────────────────────────
+function drawActiveEffects() {
+  const defs = [
+    { key:'speed',      label:'⚡ SPEED',  color:'#FF8C00', max:6000 },
+    { key:'multiplier', label:'★ 2×',      color:'#FFD700', max:8000 },
+    { key:'timefreeze', label:'❄ FREEZE',  color:'#00BFFF', max:5000 },
+  ];
+  let col = 0;
+  for (const d of defs) {
+    const t = player.effects[d.key];
+    if (t <= 0) continue;
+    const x = 8 + col * 96;
+    const y = 48;
+    ctx.save();
+    ctx.fillStyle = 'rgba(0,0,0,0.65)';
+    ctx.roundRect(x, y, 90, 18, 4); ctx.fill();
+    ctx.fillStyle = d.color;
+    ctx.font = 'bold 10px Arial';
+    ctx.fillText(`${d.label} ${(t / 1000).toFixed(1)}s`, x + 4, y + 12);
+    ctx.globalAlpha = 0.4;
+    ctx.fillRect(x, y + 15, 90 * (t / d.max), 3);
+    ctx.globalAlpha = 1;
+    ctx.restore();
+    col++;
+  }
 }
 
 // ================================================================
@@ -1178,6 +1567,7 @@ function render(ts) {
     drawMenu();
   } else if (gs.phase === 'playing') {
     drawBackground(gs.cameraX);
+    drawPowerUps();
     const sorted = [...npcs].sort((a, b) => a.y - b.y);
     for (const npc of sorted) {
       if (npc.caught) continue;
@@ -1187,7 +1577,9 @@ function render(ts) {
     }
     drawProtagonist(player.x, player.y, player.frame, player.facing);
     drawCaughtEffects();
+    drawVignette();
     drawHUD();
+    drawActiveEffects();
     update(dt);
   } else if (gs.phase === 'levelComplete') {
     drawBackground(gs.cameraX); drawLevelComplete();
