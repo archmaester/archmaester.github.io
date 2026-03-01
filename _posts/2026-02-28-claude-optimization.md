@@ -101,7 +101,109 @@ This leads to:
 
 ---
 
-## 3. The Solution: `/compact`
+## 3. Understanding Turns, KV Cache, and Why Claude Re-Reads Context
+
+To truly optimize Claude Code usage, you must understand one core concept:
+
+> Claude is priced on what it reads — and it re-reads everything every turn.
+
+---
+
+### What is a *Turn*?
+
+A **turn** is one full interaction cycle:
+
+<div class="formula-box">
+
+User prompt → Claude reads full context → Claude generates response
+
+</div>
+
+That entire loop = **1 turn**
+
+---
+
+### What Constitutes a Turn?
+
+Each turn includes Claude reprocessing:
+
+- System Prompt
+- Tools
+- Memory
+- Conversation History
+- Your New Input
+
+Even if *you didn't repeat anything*, Claude still reprocesses all of it.
+
+---
+
+### Turn Examples
+
+| Interaction | Turn Count |
+|-------------|------------|
+| You ask: "Fix this bug" | 1 |
+| You follow up: "Optimize performance" | 2 |
+| You say: "Add logging" | 3 |
+
+Even though this feels like one conversation, Claude performs **3 full inference passes**.
+
+---
+
+### Mental Model
+
+Think of Claude like this:
+
+> Each turn = Claude re-reading the entire book before answering the next question.
+
+It does not continue thinking from where it left off.
+
+---
+
+### Why KV Cache Doesn't Help Across Turns
+
+Many assume:
+
+> "KV cache should store past context — so why re-read?"
+
+KV cache only works **within one response generation**.
+
+During token-by-token generation:
+
+<div class="formula-box">
+
+Token → Token → Token
+
+</div>
+
+KV cache avoids recomputing attention. But once Claude finishes answering:
+
+- That inference ends
+- KV cache is discarded
+
+Next turn = **fresh inference**
+
+---
+
+### Why Claude Re-Reads Every Turn
+
+Claude is stateless between turns by design. This allows:
+
+- Tool updates
+- File edits
+- Memory changes
+- Plan revisions
+- Safety guarantees
+- Deterministic behavior
+
+If KV cache were persisted, Claude could reason using stale state, tool outputs could become inconsistent, and conversation edits would break correctness.
+
+Persistent KV would lock Claude into past assumptions, break agent reliability, and make tool-driven workflows unsafe.
+
+**KV cache = scratchpad while writing an answer.** Each new question requires re-reading the notebook, not reusing scratchpad thoughts.
+
+---
+
+## 4. The Solution: `/compact`
 
 Claude provides a built-in command:
 
@@ -152,7 +254,7 @@ Messages = ~8K tokens
 
 ---
 
-## 4. How `/compact` Affects Context
+## 5. How `/compact` Affects Context
 
 | Component      | Before | After     |
 |---------------|--------|-----------|
@@ -177,7 +279,7 @@ But removes:
 
 ---
 
-## 5. Automatic Compaction
+## 6. Automatic Compaction
 
 Claude may automatically run compaction when it detects:
 
@@ -202,7 +304,7 @@ Manual compaction = better performance.
 
 ---
 
-## 6. Task Isolation: Use New Windows
+## 7. Task Isolation: Use New Windows
 
 Claude carries history forward across a session.
 
@@ -253,7 +355,7 @@ Free Space
 
 ---
 
-## 7. Tool Optimization via `/tools`
+## 8. Tool Optimization via `/tools`
 
 Claude loads many tools by default.
 
@@ -306,15 +408,66 @@ Removing unused tools improves:
 
 ---
 
-## 8. Optimization Checklist
+## 9. Summarization vs `/compact`
+
+Since Claude re-reads every turn, optimization means reducing what it has to read. The two most powerful tools are **summarization** and **`/compact`** — but they work differently.
+
+**Summarization** is semantic compression. You manually convert a long conversation into a structured memory document:
+
+<div class="formula-box">
+
+100K history → 20K structured memory
+
+</div>
+
+This keeps decisions, constraints, and current state — and removes exploration, iterations, and dead paths.
+
+**`/compact`** is structural pruning. Claude removes redundant reasoning, tool chatter, and repetition — but does not rewrite meaning.
+
+| Feature | Summarization | `/compact` |
+|---------|--------------|-----------|
+| Type | Semantic | Structural |
+| Rewrites knowledge? | Yes | No |
+| Removes clutter? | Yes | Yes |
+| Keeps conclusions? | Depends on prompt | Automatically |
+| Requires prompt? | Yes | No |
+| Control level | High | Low |
+
+**Summarization** = Rewrite the story
+**`/compact`** = Remove the noise
+
+### Impact on Usage
+
+| Strategy | Context Size | Total Usage Trend |
+|----------|-------------|-------------------|
+| No optimization | Large | Explodes |
+| Only `/compact` | Medium | Moderate |
+| Only summarization | Small | Efficient |
+| Summarization + `/compact` | Smallest | Optimal |
+
+### Practical Workflow
+
+<div class="formula-box">
+
+Explore → Decide → Summarize → /compact → Continue
+
+</div>
+
+This converts recurring cost into one-time cost.
+
+---
+
+## 10. Optimization Checklist
 
 | Action | Benefit |
 |--------|--------|
 | Run `/compact` regularly | Shrinks message history |
+| Summarize after exploration phases | Semantic compression of expensive history |
 | Use new window per task | Eliminates irrelevant history |
 | Check `/tools` | Remove unused tool overhead |
 | Avoid multi-project threads | Prevent silent context growth |
 | Compact before major prompts | Maximize reasoning capacity |
+| Combine summary + compact | Smallest possible context footprint |
 
 ---
 
@@ -328,14 +481,23 @@ It is limited by:
 
 Managing:
 
-- Message growth  
-- Tool load  
-- Task isolation  
+- Message growth
+- Tool load
+- Task isolation
+- Summarization cadence
 
 is the difference between:
 
-⚡ Fast, high-quality responses  
-vs  
-🐌 Slow, degraded reasoning  
+⚡ Fast, high-quality responses
+vs
+🐌 Slow, degraded reasoning
+
+Claude re-reads context every turn because it is stateless by design.
+
+KV cache helps within responses — not across turns.
+
+So optimization is not about faster thinking...
+
+It's about giving Claude less to remember.
 
 Optimize context → Optimize Claude.
