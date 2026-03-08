@@ -1147,6 +1147,83 @@ code {
 }
 
 
+// Status & source badges
+.card-header-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.card-meta-badges {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.status-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.15em 0.55em;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.status-seed {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-growing {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-evergreen {
+  background-color: #cce5ff;
+  color: #004085;
+}
+
+.source-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 0.15em 0.55em;
+  border-radius: 4px;
+  background-color: #e9ecef;
+  color: #495057;
+  text-transform: lowercase;
+}
+
+.card-reviewed {
+  font-size: 0.72rem;
+  color: var(--global-text-color-light);
+  margin-top: 0.5rem;
+
+  &.stale {
+    color: #dc3545;
+    font-weight: 600;
+  }
+}
+
+.filter-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--global-text-color-light);
+  margin-right: 0.25rem;
+}
+
+.needs-review-pill {
+  border-color: #dc3545 !important;
+  color: #dc3545 !important;
+
+  &:hover, &.active {
+    background-color: #dc3545 !important;
+    color: white !important;
+  }
+}
+
 // Transitioning Themes
 html.transition,
 html.transition *,

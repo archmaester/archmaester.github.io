@@ -3,6 +3,9 @@ layout: concept
 title: "Dropout"
 date: 2026-03-08
 tags: [deep-learning, regularization, neural-networks]
+source: paper        # paper | book | chatgpt | internet | course
+status: evergreen    # seed | growing | evergreen
+last_reviewed: 2026-03-08
 paper:
   title: "Dropout: A Simple Way to Prevent Neural Networks from Overfitting"
   authors: "Srivastava, Hinton, et al."
