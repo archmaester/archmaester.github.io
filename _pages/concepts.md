@@ -3,7 +3,7 @@ layout: page
 title: concepts
 permalink: /concepts/
 description: A running log of concepts I learn, organized by date.
-nav: true
+nav: false
 ---
 
 {% comment %} Collect all tags from concepts {% endcomment %}

@@ -3,7 +3,7 @@ layout: page
 title: courses
 permalink: /courses/
 description: A catalog of courses and learning resources I've created.
-nav: true
+nav: false
 display_categories: [kubernetes]
 horizontal: false
 ---

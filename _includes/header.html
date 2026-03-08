@@ -31,17 +31,20 @@
               {% endif %}
             </a>
           </li>
-          {% if site.blog_name %}
-          <!-- Blog -->
-          <li class="nav-item {% if page.url contains 'blog' %}active{% endif %}">
-            <a class="nav-link" href="{{ '/blog/' | relative_url }}">
-              blog
-              {% if page.title == "blog" %}
-              <span class="sr-only">(current)</span>
-              {% endif %}
+          <!-- Content dropdown: blog, courses, concepts, projects -->
+          <li class="nav-item dropdown {% if page.url contains 'blog' or page.title == 'courses' or page.title == 'concepts' or page.title == 'projects' %}active{% endif %}">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownContent" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              content
             </a>
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownContent">
+              {% if site.blog_name %}
+              <a class="dropdown-item {% if page.url contains 'blog' %}active{% endif %}" href="{{ '/blog/' | relative_url }}">blog</a>
+              {% endif %}
+              <a class="dropdown-item {% if page.title == 'courses' %}active{% endif %}" href="{{ '/courses/' | relative_url }}">courses</a>
+              <a class="dropdown-item {% if page.title == 'concepts' %}active{% endif %}" href="{{ '/concepts/' | relative_url }}">concepts</a>
+              <a class="dropdown-item {% if page.title == 'projects' %}active{% endif %}" href="{{ '/projects/' | relative_url }}">projects</a>
+            </div>
           </li>
-          {% endif %}
           <!-- Other pages -->
           {% assign sorted_pages = site.pages | sort: "title" %}
           {% for p in sorted_pages %}

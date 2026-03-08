@@ -3,7 +3,7 @@ layout: page
 title: projects
 permalink: /projects/
 description: Contains detailed description of some of my works
-nav: true
+nav: false
 display_categories: [research, games]
 horizontal: false
 ---
