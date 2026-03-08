@@ -19,10 +19,10 @@ nav: false
 {% comment %} View toggle {% endcomment %}
 <div class="concept-controls">
   <div class="concept-view-toggle">
-    <button class="view-btn active" data-view="timeline" onclick="switchView('timeline', this)">
+    <button class="view-btn" data-view="timeline" onclick="switchView('timeline', this)">
       <i class="fas fa-stream"></i> Timeline
     </button>
-    <button class="view-btn" data-view="cards" onclick="switchView('cards', this)">
+    <button class="view-btn active" data-view="cards" onclick="switchView('cards', this)">
       <i class="fas fa-th-large"></i> Cards
     </button>
     <button class="view-btn" data-view="list" onclick="switchView('list', this)">
@@ -42,7 +42,7 @@ nav: false
 </div>
 
 {% comment %} ====== TIMELINE VIEW ====== {% endcomment %}
-<div class="concept-view concept-timeline active" id="view-timeline">
+<div class="concept-view concept-timeline" id="view-timeline">
   {% assign sorted_concepts = site.concepts | sort: "date" | reverse %}
   {% assign current_date = "" %}
   {% for concept in sorted_concepts %}
@@ -85,7 +85,7 @@ nav: false
 </div>
 
 {% comment %} ====== CARDS VIEW ====== {% endcomment %}
-<div class="concept-view concept-cards" id="view-cards">
+<div class="concept-view concept-cards active" id="view-cards">
   {% for concept in sorted_concepts %}
   <div class="concept-card-item" data-tags="{{ concept.tags | join: ' ' }}" data-concept="{{ concept.slug }}">
     <div class="concept-card" onclick="toggleConcept('{{ concept.slug }}', this)">
