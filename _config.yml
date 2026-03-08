@@ -97,6 +97,9 @@ collections:
   projects:
     output: true
     permalink: /projects/:path/
+  concepts:
+    output: true
+    permalink: /concepts/:path/
   courses:
     output: true
     permalink: /courses/:path/

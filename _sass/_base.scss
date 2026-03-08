@@ -904,6 +904,210 @@ code {
 }
 
 
+// Concepts
+
+.concept-controls {
+  margin-bottom: 1.5rem;
+}
+
+.concept-view-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+
+  .view-btn {
+    background: transparent;
+    border: 1px solid var(--global-theme-color);
+    color: var(--global-theme-color);
+    padding: 0.35em 0.85em;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background-color 0.2s, color 0.2s;
+
+    i { margin-right: 0.3em; }
+
+    &:hover, &.active {
+      background-color: var(--global-theme-color);
+      color: white;
+    }
+  }
+}
+
+.concept-view {
+  display: none;
+  &.active { display: block; }
+}
+
+// Timeline view
+.concept-timeline {
+  .timeline-date-group {
+    position: relative;
+    padding-left: 1.5rem;
+    border-left: 2px solid $grey-color-light;
+    margin-bottom: 1.5rem;
+  }
+
+  .timeline-date {
+    position: relative;
+    margin-bottom: 0.75rem;
+
+    .date-badge {
+      display: inline-block;
+      background-color: var(--global-theme-color);
+      color: white;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.25em 0.75em;
+      border-radius: 4px;
+      position: relative;
+      left: -0.75rem;
+    }
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: -1.85rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: var(--global-theme-color);
+      border: 2px solid var(--global-bg-color);
+    }
+  }
+
+  .timeline-concept {
+    position: relative;
+    margin-bottom: 0.75rem;
+  }
+
+  .timeline-card {
+    border: 1px solid $grey-color-light;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+    }
+
+    h3 {
+      margin: 0 0 0.25rem 0;
+      font-size: 1.1rem;
+      a {
+        color: var(--global-text-color);
+        text-decoration: none;
+        &:hover { color: var(--global-theme-color); }
+      }
+    }
+
+    .concept-desc {
+      font-size: 0.875rem;
+      color: var(--global-text-color-light);
+      margin-bottom: 0.5rem;
+    }
+
+    .post-tags { margin-top: 0.25rem; }
+  }
+}
+
+// Cards view
+.concept-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+
+  &.active { display: grid; }
+}
+
+.concept-card-item {
+  .concept-card {
+    border: 1px solid $grey-color-light;
+    border-radius: 8px;
+    padding: 1.25rem;
+    height: 100%;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+    }
+
+    .card-date {
+      font-size: 0.75rem;
+      color: var(--global-text-color-light);
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.05rem;
+      a {
+        color: var(--global-text-color);
+        text-decoration: none;
+        &:hover { color: var(--global-theme-color); }
+      }
+    }
+
+    .concept-desc {
+      font-size: 0.85rem;
+      color: var(--global-text-color-light);
+      margin-bottom: 0.5rem;
+    }
+  }
+}
+
+// List view
+.concept-list-view {
+  .concept-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th, td {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid $grey-color-light;
+      text-align: left;
+    }
+
+    th {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--global-text-color-light);
+      font-weight: 600;
+    }
+
+    td {
+      font-size: 0.9rem;
+      a {
+        color: var(--global-text-color);
+        text-decoration: none;
+        &:hover { color: var(--global-theme-color); }
+      }
+    }
+
+    .concept-table-date {
+      white-space: nowrap;
+      color: var(--global-text-color-light);
+      font-size: 0.85rem;
+      font-family: monospace;
+    }
+  }
+}
+
+// Concept page (individual)
+.concept-paper {
+  font-size: 0.9rem;
+  color: var(--global-text-color-light);
+  margin-bottom: 0.5rem;
+}
+
+
 // Transitioning Themes
 html.transition,
 html.transition *,
