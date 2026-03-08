@@ -939,6 +939,47 @@ code {
   &.active { display: block; }
 }
 
+// Inline detail expansion (shared across views)
+.concept-detail {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease, opacity 0.3s ease;
+  opacity: 0;
+
+  &.open {
+    max-height: 2000px;
+    opacity: 1;
+  }
+}
+
+.concept-detail-inner {
+  padding: 1rem 1.25rem;
+  border: 1px solid $grey-color-light;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  font-size: 0.9rem;
+
+  ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    li { margin-bottom: 0.3rem; }
+  }
+
+  p { margin-bottom: 0.5rem; }
+}
+
+.concept-paper {
+  font-size: 0.85rem;
+  color: var(--global-text-color-light);
+  margin-bottom: 0.5rem;
+
+  a {
+    color: var(--global-theme-color);
+    text-decoration: none;
+    &:hover { text-decoration: underline; }
+  }
+}
+
 // Timeline view
 .concept-timeline {
   .timeline-date-group {
@@ -987,36 +1028,34 @@ code {
     border: 1px solid $grey-color-light;
     border-radius: 8px;
     padding: 1rem 1.25rem;
+    cursor: pointer;
     transition: box-shadow 0.2s ease, transform 0.2s ease;
 
     &:hover {
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      transform: translateY(-2px);
+      transform: scale(1.02);
     }
 
     h3 {
       margin: 0 0 0.25rem 0;
       font-size: 1.1rem;
-      a {
-        color: var(--global-text-color);
-        text-decoration: none;
-        &:hover { color: var(--global-theme-color); }
-      }
-    }
-
-    .concept-desc {
-      font-size: 0.875rem;
-      color: var(--global-text-color-light);
-      margin-bottom: 0.5rem;
+      color: var(--global-text-color);
     }
 
     .post-tags { margin-top: 0.25rem; }
+  }
+
+  .concept-detail.open + .concept-detail,
+  .concept-detail.open {
+    & .concept-detail-inner {
+      border-left: none;
+      border-right: none;
+    }
   }
 }
 
 // Cards view
 .concept-cards {
-  display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1rem;
 
@@ -1028,12 +1067,12 @@ code {
     border: 1px solid $grey-color-light;
     border-radius: 8px;
     padding: 1.25rem;
-    height: 100%;
+    cursor: pointer;
     transition: box-shadow 0.2s ease, transform 0.2s ease;
 
     &:hover {
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      transform: translateY(-2px);
+      transform: scale(1.05);
     }
 
     .card-date {
@@ -1045,20 +1084,14 @@ code {
     }
 
     h3 {
-      margin: 0 0 0.5rem 0;
+      margin: 0;
       font-size: 1.05rem;
-      a {
-        color: var(--global-text-color);
-        text-decoration: none;
-        &:hover { color: var(--global-theme-color); }
-      }
+      color: var(--global-text-color);
     }
+  }
 
-    .concept-desc {
-      font-size: 0.85rem;
-      color: var(--global-text-color-light);
-      margin-bottom: 0.5rem;
-    }
+  .concept-detail-inner {
+    border-radius: 0 0 8px 8px;
   }
 }
 
@@ -1084,10 +1117,23 @@ code {
 
     td {
       font-size: 0.9rem;
-      a {
-        color: var(--global-text-color);
-        text-decoration: none;
-        &:hover { color: var(--global-theme-color); }
+    }
+
+    tr[data-concept] {
+      cursor: pointer;
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.03);
+      }
+    }
+
+    .concept-detail-row td {
+      padding: 0;
+      border-bottom: 1px solid $grey-color-light;
+
+      .concept-detail-inner {
+        border: none;
+        border-radius: 0;
+        padding: 1rem 1.25rem;
       }
     }
 
@@ -1098,13 +1144,6 @@ code {
       font-family: monospace;
     }
   }
-}
-
-// Concept page (individual)
-.concept-paper {
-  font-size: 0.9rem;
-  color: var(--global-text-color-light);
-  margin-bottom: 0.5rem;
 }
 
 

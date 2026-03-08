@@ -57,11 +57,10 @@ nav: true
           <span class="date-badge">{{ concept.date | date: "%d %b %Y" }}</span>
         </div>
     {% endif %}
-    <div class="timeline-concept" data-tags="{{ concept.tags | join: ' ' }}">
+    <div class="timeline-concept" data-tags="{{ concept.tags | join: ' ' }}" data-concept="{{ concept.slug }}">
       <div class="timeline-connector"></div>
-      <div class="timeline-card">
-        <h3><a href="{{ concept.url | relative_url }}">{{ concept.title }}</a></h3>
-        <p class="concept-desc">{{ concept.description }}</p>
+      <div class="timeline-card" onclick="toggleConcept('{{ concept.slug }}', this)">
+        <h3>{{ concept.title }}</h3>
         {% if concept.tags.size > 0 %}
         <div class="post-tags">
           {% for tag in concept.tags %}
@@ -69,6 +68,14 @@ nav: true
           {% endfor %}
         </div>
         {% endif %}
+      </div>
+      <div class="concept-detail" id="detail-timeline-{{ concept.slug }}">
+        <div class="concept-detail-inner">
+          {% if concept.paper %}
+          <p class="concept-paper"><strong>Paper:</strong> <a href="{{ concept.paper.url }}">{{ concept.paper.authors }} ({{ concept.paper.year }})</a></p>
+          {% endif %}
+          {{ concept.content }}
+        </div>
       </div>
     </div>
   {% endfor %}
@@ -80,11 +87,10 @@ nav: true
 {% comment %} ====== CARDS VIEW ====== {% endcomment %}
 <div class="concept-view concept-cards" id="view-cards">
   {% for concept in sorted_concepts %}
-  <div class="concept-card-item" data-tags="{{ concept.tags | join: ' ' }}">
-    <div class="concept-card">
+  <div class="concept-card-item" data-tags="{{ concept.tags | join: ' ' }}" data-concept="{{ concept.slug }}">
+    <div class="concept-card" onclick="toggleConcept('{{ concept.slug }}', this)">
       <div class="card-date">{{ concept.date | date: "%d %b %Y" }}</div>
-      <h3><a href="{{ concept.url | relative_url }}">{{ concept.title }}</a></h3>
-      <p class="concept-desc">{{ concept.description }}</p>
+      <h3>{{ concept.title }}</h3>
       {% if concept.tags.size > 0 %}
       <div class="post-tags">
         {% for tag in concept.tags %}
@@ -92,6 +98,14 @@ nav: true
         {% endfor %}
       </div>
       {% endif %}
+    </div>
+    <div class="concept-detail" id="detail-cards-{{ concept.slug }}">
+      <div class="concept-detail-inner">
+        {% if concept.paper %}
+        <p class="concept-paper"><strong>Paper:</strong> <a href="{{ concept.paper.url }}">{{ concept.paper.authors }} ({{ concept.paper.year }})</a></p>
+        {% endif %}
+        {{ concept.content }}
+      </div>
     </div>
   </div>
   {% endfor %}
@@ -109,13 +123,23 @@ nav: true
     </thead>
     <tbody>
       {% for concept in sorted_concepts %}
-      <tr data-tags="{{ concept.tags | join: ' ' }}">
+      <tr data-tags="{{ concept.tags | join: ' ' }}" data-concept="{{ concept.slug }}" onclick="toggleConcept('{{ concept.slug }}', this)" style="cursor: pointer;">
         <td class="concept-table-date">{{ concept.date | date: "%d-%m-%Y" }}</td>
-        <td><a href="{{ concept.url | relative_url }}">{{ concept.title }}</a></td>
+        <td>{{ concept.title }}</td>
         <td>
           {% for tag in concept.tags %}
           <span class="tag-badge">{{ tag }}</span>
           {% endfor %}
+        </td>
+      </tr>
+      <tr class="concept-detail-row" id="detail-list-{{ concept.slug }}" style="display: none;">
+        <td colspan="3">
+          <div class="concept-detail-inner">
+            {% if concept.paper %}
+            <p class="concept-paper"><strong>Paper:</strong> <a href="{{ concept.paper.url }}">{{ concept.paper.authors }} ({{ concept.paper.year }})</a></p>
+            {% endif %}
+            {{ concept.content }}
+          </div>
         </td>
       </tr>
       {% endfor %}
@@ -125,6 +149,14 @@ nav: true
 
 <script>
 function switchView(view, el) {
+  // Close all open details first
+  document.querySelectorAll('.concept-detail').forEach(function(d) {
+    d.classList.remove('open');
+  });
+  document.querySelectorAll('.concept-detail-row').forEach(function(r) {
+    r.style.display = 'none';
+  });
+
   document.querySelectorAll('.view-btn').forEach(function(btn) {
     btn.classList.remove('active');
   });
@@ -135,11 +167,37 @@ function switchView(view, el) {
   document.getElementById('view-' + view).classList.add('active');
 }
 
+function toggleConcept(slug, el) {
+  // Determine which view is active
+  var views = ['timeline', 'cards', 'list'];
+  views.forEach(function(view) {
+    var detail = document.getElementById('detail-' + view + '-' + slug);
+    if (!detail) return;
+    var viewContainer = document.getElementById('view-' + view);
+    if (!viewContainer || !viewContainer.classList.contains('active')) return;
+
+    if (view === 'list') {
+      // Toggle table row visibility
+      detail.style.display = detail.style.display === 'none' ? '' : 'none';
+    } else {
+      detail.classList.toggle('open');
+    }
+  });
+}
+
 function filterConcepts(tag, el) {
   document.querySelectorAll('.tag-pill').forEach(function(pill) {
     pill.classList.remove('active');
   });
   el.classList.add('active');
+
+  // Close all open details
+  document.querySelectorAll('.concept-detail').forEach(function(d) {
+    d.classList.remove('open');
+  });
+  document.querySelectorAll('.concept-detail-row').forEach(function(r) {
+    r.style.display = 'none';
+  });
 
   // Timeline view
   document.querySelectorAll('.timeline-concept').forEach(function(item) {
@@ -150,7 +208,6 @@ function filterConcepts(tag, el) {
       item.style.display = tags.indexOf(tag) !== -1 ? '' : 'none';
     }
   });
-  // Show/hide date groups if all concepts inside are hidden
   document.querySelectorAll('.timeline-date-group').forEach(function(group) {
     var concepts = group.querySelectorAll('.timeline-concept');
     var anyVisible = false;
@@ -171,7 +228,7 @@ function filterConcepts(tag, el) {
   });
 
   // List view
-  document.querySelectorAll('.concept-table tbody tr').forEach(function(row) {
+  document.querySelectorAll('.concept-table tbody tr[data-concept]').forEach(function(row) {
     if (tag === 'all') {
       row.style.display = '';
     } else {

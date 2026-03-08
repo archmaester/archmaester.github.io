@@ -21,7 +21,6 @@ Use a short, lowercase, hyphenated slug. Examples: `dropout.md`, `batch-normaliz
 layout: concept
 title: "Concept Name"
 date: YYYY-MM-DD
-description: "One-line summary of the concept."
 tags: [tag1, tag2, tag3]
 ---
 ```
@@ -29,45 +28,46 @@ tags: [tag1, tag2, tag3]
 ## Frontmatter (optional fields)
 
 ```yaml
-paper: "Paper Title (Authors, Year)"
+paper:
+  title: "Paper Title"
+  authors: "Authors"
+  year: 2024
+  url: "https://..."
 ```
 
-`paper` renders as an italicized reference below the title on the concept page.
+`paper` renders as a linked reference (Authors, Year) in the expanded detail view.
 
 ## Content structure
 
-Use markdown with `##` headings for sections. Typical sections (adapt as needed):
+Write concise bullet points. No headings needed — the content expands inline on the concepts page (no separate page is generated).
 
 ```markdown
-## Core Idea
-Brief explanation of the concept.
-
-## Motivation
-Why this concept exists / what problem it solves.
-
-## Formalism
-Math formulas, equations, definitions. Use `$...$` for inline and `$$...$$` for display math.
-
-## Pros & Cons
-| Pros | Cons |
-| :--- | :--- |
-| ... | ... |
-
-## Implementation Snippet (PyTorch)
-\```python
-# code here
-\```
+- **Motivation:** Why this concept exists.
+- **Equation:** Key math. Use `$...$` for inline math.
+- **Training:** How it works during training.
+- **Inference:** How it works during inference.
+- **Pros:** Benefits.
+- **Cons:** Drawbacks.
+- **Impl:** Code reference (e.g., `nn.Dropout(p)` in PyTorch).
 ```
 
-Not every concept needs all sections. Use what fits.
+Adapt the bullet points to fit the concept. Keep it brief — a few lines, not paragraphs.
+
+## How the listing page works
+
+The concepts page (`/concepts/`) has three views:
+1. **Timeline** — concepts grouped by date (DD-MM-YYYY), newest first
+2. **Cards** — grid layout (zoom-in on hover, no descriptions shown)
+3. **List** — compact table
+
+Clicking a concept in any view expands its detail inline (no separate page). All views support tag filtering.
 
 ## Features available in content
 
 - **Math:** `$inline$` and `$$display$$` (MathJax enabled site-wide)
-- **Code blocks:** Fenced with language identifier (```python, ```bash, etc.)
-- **Tables:** Standard markdown tables
+- **Code:** Inline with backticks
 - **Bold/Italic:** `**bold**`, `*italic*`
-- **Lists:** Bulleted (`*`) and numbered (`1.`)
+- **Lists:** Bulleted (`-`)
 
 ## Tags convention
 
@@ -76,15 +76,6 @@ Use lowercase, hyphenated tags. Reuse existing tags when possible. Common tags:
 - `cnn`, `rnn`, `transformer`, `attention`
 - `math`, `linear-algebra`, `probability`
 
-## How the listing page works
-
-The concepts page (`/concepts/`) has three views:
-1. **Timeline** — concepts grouped by date (DD-MM-YYYY), newest first
-2. **Cards** — grid layout
-3. **List** — compact table
-
-All views support tag filtering. Multiple concepts on the same `date` are grouped together in the timeline view.
-
 ## Quick copy-paste template
 
 ```yaml
@@ -92,14 +83,10 @@ All views support tag filtering. Multiple concepts on the same `date` are groupe
 layout: concept
 title: ""
 date:
-description: ""
 tags: []
 ---
 
-## Core Idea
-
-
-## Key Details
-
-
+- **Motivation:**
+- **Key idea:**
+- **Impl:**
 ```

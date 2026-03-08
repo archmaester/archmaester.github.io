@@ -98,8 +98,7 @@ collections:
     output: true
     permalink: /projects/:path/
   concepts:
-    output: true
-    permalink: /concepts/:path/
+    output: false
   courses:
     output: true
     permalink: /courses/:path/
