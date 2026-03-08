@@ -905,28 +905,18 @@ code {
 
 
 // AI Summary toggle icon
-.ai-summary-toggle {
-  cursor: pointer;
-  color: var(--global-text-color);
-  opacity: 0.6;
-  transition: opacity 0.2s;
-
-  &:hover {
-    opacity: 1;
-    color: var(--global-theme-color);
-  }
-}
-
-// Ask AI toggle icon
+.ai-summary-toggle,
 .ask-ai-toggle {
   cursor: pointer;
   color: var(--global-text-color);
   opacity: 0.6;
   transition: opacity 0.2s;
+  font-size: 1rem;
 
   &:hover {
     opacity: 1;
     color: var(--global-theme-color);
+    text-decoration: none;
   }
 }
 

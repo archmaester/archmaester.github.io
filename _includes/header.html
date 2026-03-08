@@ -79,16 +79,16 @@
           {% endif %}
           {% endif %}
           {% endfor %}
-          <div class="toggle-container">
-            <a href="{{ '/ai-summary/' | relative_url }}" title="What I've been up to" class="ai-summary-toggle">
+          <li class="nav-item">
+            <a class="nav-link ai-summary-toggle" href="{{ '/ai-summary/' | relative_url }}" title="What I've been up to">
               <i class="fas fa-brain"></i>
             </a>
-          </div>
-          <div class="toggle-container">
-            <a href="#" title="Ask AI about me" class="ask-ai-toggle" data-toggle="modal" data-target="#askAiModal">
+          </li>
+          <li class="nav-item">
+            <a class="nav-link ask-ai-toggle" href="#" title="Ask AI about me" data-toggle="modal" data-target="#askAiModal">
               <i class="fas fa-comment-dots"></i>
             </a>
-          </div>
+          </li>
           {% if site.enable_darkmode %}
             <div class = "toggle-container">
               <a id = "light-toggle">

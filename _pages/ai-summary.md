@@ -5,7 +5,7 @@ permalink: /ai-summary/
 description: An AI-generated summary of what I'm currently working on and learning.
 ---
 
-<div class="ai-summary-container">
+<div class="ai-summary-container" markdown="1">
 
 <p class="ai-summary-meta text-muted">Last updated: 2026-03-08</p>
 
