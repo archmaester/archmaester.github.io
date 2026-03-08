@@ -1,0 +1,153 @@
+<div class="modal fade" id="askAiModal" tabindex="-1" role="dialog" aria-labelledby="askAiModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+    <div class="modal-content ask-ai-modal-content">
+      <!-- Step 1: Ask question -->
+      <div id="askAiStep1">
+        <div class="modal-header">
+          <h5 class="modal-title" id="askAiModalLabel"><i class="fas fa-comment-dots"></i> Ask AI about me</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted ask-ai-description">Ask anything about my research, interests, or what I've been working on.</p>
+          <textarea id="askAiQuestion" class="form-control ask-ai-textarea" rows="2" placeholder="e.g. What are his research interests?"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="ask-ai-btn ask-ai-btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="button" class="ask-ai-btn ask-ai-btn-primary" id="askAiSubmit">Next <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </div>
+      <!-- Step 2: Copy and go -->
+      <div id="askAiStep2" style="display:none;">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="fas fa-check-circle"></i> Ready</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p class="ask-ai-your-question"><em id="askAiQuestionPreview"></em></p>
+          <p class="text-muted ask-ai-description">Copy the prompt, then paste it in Claude.</p>
+          <div id="askAiCopyStatus" class="ask-ai-status ask-ai-status-success" style="display:none;">Copied!</div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="ask-ai-btn ask-ai-btn-secondary" id="askAiBack"><i class="fas fa-arrow-left"></i> Back</button>
+          <button type="button" class="ask-ai-btn ask-ai-btn-primary" id="askAiCopyBtn"><i class="fas fa-copy"></i> Copy</button>
+          <a href="https://claude.ai/new" target="_blank" class="ask-ai-btn ask-ai-btn-primary" id="askAiOpenClaude"><i class="fas fa-external-link-alt"></i> Open Claude</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var contextText = [
+    "Name: {{ site.first_name }} {{ site.middle_name }} {{ site.last_name }}",
+    "Affiliation: Researcher at Czech Technical University",
+    "Previous: Research Assistant at IIT Hyderabad (with Prof. Vineeth N. Balasubramanian) and IISc Bengaluru (with Prof. Anirban Chakraborty)",
+    "Research Interests: Deep Learning, Computer Vision, Knowledge Distillation/Transfer, Interpretability",
+    "",
+    "## What I've been working on",
+    "",
+    "### Focus Areas",
+    "- Deep Learning Fundamentals: Strong, math-grounded coverage of core neural network building blocks — convolutions, batch normalization, dropout, activation functions, gradient computation",
+    "- Edge AI & Model Deployment: INT8 quantization (PTQ, QAT), mixed-precision training with BF16, depthwise-separable convolutions for mobile",
+    "- Numerical Precision & Hardware: Floating point representation, precision-range tradeoffs, tensor core computation, BF16",
+    "- Linear Algebra for ML: PCA, ZCA whitening, eigenvalue decomposition, covariance matrices",
+    "- ML Theory: Bias-variance tradeoff, ensemble methods (bagging, boosting, GBM, XGBoost), regularization",
+    "",
+    "### Depth Indicators",
+    "- Convolutions (2D, depthwise, pointwise): Deep",
+    "- Quantization & mixed precision: Deep",
+    "- Gradient derivations / backprop: Deep",
+    "- Batch normalization: Moderate",
+    "- Ensemble methods (RF, GBM, XGBoost): Moderate",
+    "- PCA / whitening: Moderate",
+    "- Dropout / regularization: Moderate",
+    "- LLM tooling: Surface",
+    "- Transformers / attention: Not yet covered",
+    "- Generative models: Not yet covered",
+    "",
+    "### Technical Style",
+    "- Math-first: derives formulas before explaining intuition",
+    "- Comprehensive: posts are study-guide length, not quick notes",
+    "- Practical grounding: connects theory to real constraints (hardware, memory, latency)",
+    "- Sources content from AI discussions and synthesizes into structured write-ups"
+  ].join("\n");
+
+  var step1 = document.getElementById('askAiStep1');
+  var step2 = document.getElementById('askAiStep2');
+  var questionEl = document.getElementById('askAiQuestion');
+  var questionPreview = document.getElementById('askAiQuestionPreview');
+  var copyStatus = document.getElementById('askAiCopyStatus');
+  var currentPrompt = '';
+
+  function showStep(n) {
+    step1.style.display = n === 1 ? '' : 'none';
+    step2.style.display = n === 2 ? '' : 'none';
+  }
+
+  function buildPrompt(question) {
+    return "You are answering questions about a researcher based ONLY on the following context. " +
+      "Do not make up information beyond what is provided. If the answer is not in the context, say so.\n\n" +
+      "---\n" + contextText + "\n---\n\n" +
+      "Question: " + question;
+  }
+
+  document.getElementById('askAiSubmit').addEventListener('click', function() {
+    var question = questionEl.value.trim();
+    if (!question) { questionEl.focus(); return; }
+    currentPrompt = buildPrompt(question);
+    questionPreview.textContent = question;
+    showStep(2);
+  });
+
+  document.getElementById('askAiBack').addEventListener('click', function() {
+    copyStatus.style.display = 'none';
+    showStep(1);
+  });
+
+  document.getElementById('askAiCopyBtn').addEventListener('click', function() {
+    var tempEl = document.createElement('textarea');
+    tempEl.value = currentPrompt;
+    tempEl.style.position = 'fixed';
+    tempEl.style.left = '-9999px';
+    document.body.appendChild(tempEl);
+    tempEl.select();
+    tempEl.setSelectionRange(0, 99999);
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(currentPrompt).then(function() {
+        flashCopyStatus();
+      }).catch(function() {
+        document.execCommand('copy');
+        flashCopyStatus();
+      });
+    } else {
+      document.execCommand('copy');
+      flashCopyStatus();
+    }
+    document.body.removeChild(tempEl);
+  });
+
+  function flashCopyStatus() {
+    copyStatus.style.display = 'block';
+    setTimeout(function() { copyStatus.style.display = 'none'; }, 2000);
+  }
+
+  questionEl.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      document.getElementById('askAiSubmit').click();
+    }
+  });
+
+  $('#askAiModal').on('hidden.bs.modal', function() {
+    showStep(1);
+    questionEl.value = '';
+    copyStatus.style.display = 'none';
+  });
+})();
+</script>
