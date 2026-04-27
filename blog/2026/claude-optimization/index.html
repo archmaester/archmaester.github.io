@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+<title>
+
+  Monish  Keswani
+
+
+  | Optimizing Claude Token Usage: A Practical Guide to Context Management
+
+</title>
+<meta name="description" content="A simple, whitespace theme for academics. Based on [*folio](https://github.com/bogoli/-folio) design.
+">
+
+<!-- Open Graph -->
+
+<meta property="og:site_name" content="A simple, whitespace theme for academics. Based on [*folio](https://github.com/bogoli/-folio) design.
+" />
+<meta property="og:type" content="object" />
+<meta property="og:title" content="" />
+<meta property="og:url" content="https://archmaester.github.io/blog/2026/claude-optimization/" />
+<meta property="og:description" content="Optimizing Claude Token Usage: A Practical Guide to Context Management" />
+<meta property="og:image" content="" />
+
+
+<!-- Bootstrap & MDB -->
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" integrity="sha512-MoRNloxbStBcD8z3M/2BmnT+rg4IsMxPkXaGh2zD6LGNNFE80W3onsAhRcMAMrSoyWL9xD7Ert0men7vR8LUZg==" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/css/mdb.min.css" integrity="sha512-RO38pBRxYH3SoOprtPTD86JFOclM51/XTIdEPh5j8sj4tp8jmQIx26twG52UaLi//hQldfrh7e51WzP9wuP32Q==" crossorigin="anonymous" />
+
+<!-- Fonts & Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css"  integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.9.0/css/academicons.min.css" integrity="sha512-W4yqoT1+8NLkinBLBZko+dFB2ZbHsYLDdr50VElllRcNt2Q4/GSs6u71UHKxB7S6JEMCp5Ve4xjh3eGQl/HRvg==" crossorigin="anonymous">
+<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:100,300,400,500,700|Material+Icons">
+
+<!-- Code Syntax Highlighting -->
+<link rel="stylesheet" href="https://gitcdn.link/repo/jwarby/jekyll-pygments-themes/master/github.css" />
+
+<!-- Styles -->
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💡</text></svg>">
+
+<link rel="stylesheet" href="/assets/css/main.css">
+<link rel="canonical" href="/blog/2026/claude-optimization/">
+
+<!-- JQuery -->
+<!-- jQuery -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+
+
+<!-- Theming-->
+
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/dark_mode.js"></script>
+
+
+
+
+
+
+
+<!-- GoatCounter Analytics -->
+<script data-goatcounter="https://archmaester.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+
+
+    
+<!-- MathJax -->
+<script type="text/javascript">
+  window.MathJax = {
+    tex: {
+      tags: 'ams',
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']]
+    }
+  };
+</script>
+<script defer type="text/javascript" id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.js"></script>
+<script defer src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+
+
+  </head>
+
+  <body class="fixed-top-nav ">
+
+    <!-- Header -->
+
+    <header>
+
+    <!-- Nav Bar -->
+    <nav id="navbar" class="navbar navbar-light navbar-expand-sm fixed-top">
+    <div class="container">
+      
+      <a class="navbar-brand title font-weight-lighter" href="https://archmaester.github.io/">
+       <span class="font-weight-bold">Monish</span>   Keswani
+      </a>
+      
+      <!-- Navbar Toggle -->
+      <button class="navbar-toggler collapsed ml-auto" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar top-bar"></span>
+        <span class="icon-bar middle-bar"></span>
+        <span class="icon-bar bottom-bar"></span>
+      </button>
+      <div class="collapse navbar-collapse text-right" id="navbarNav">
+        <ul class="navbar-nav ml-auto flex-nowrap">
+          <!-- About -->
+          <li class="nav-item ">
+            <a class="nav-link" href="/">
+              about
+              
+            </a>
+          </li>
+          <!-- Content dropdown: blog, courses, concepts, projects -->
+          <li class="nav-item dropdown active">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownContent" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              content
+            </a>
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownContent">
+              
+              <a class="dropdown-item active" href="/blog/">blog</a>
+              
+              <a class="dropdown-item " href="/courses/">courses</a>
+              <a class="dropdown-item " href="/concepts/">concepts</a>
+              <a class="dropdown-item " href="/projects/">projects</a>
+            </div>
+          </li>
+          <!-- Other pages -->
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <li class="nav-item ">
+              <a class="nav-link" href="/contact/">
+                contact
+                
+              </a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          <li class="nav-item ">
+              <a class="nav-link" href="/cv/">
+                cv
+                
+              </a>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          <li class="nav-item ">
+              <a class="nav-link" href="/publications/">
+                publications
+                
+              </a>
+          </li>
+          
+          
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link ai-summary-toggle" href="/ai-summary/" title="What I've been up to">
+              <i class="fas fa-brain"></i>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link ask-ai-toggle" href="#" title="Ask AI about me" data-toggle="modal" data-target="#askAiModal">
+              <i class="fas fa-comment-dots"></i>
+            </a>
+          </li>
+          
+            <div class = "toggle-container">
+              <a id = "light-toggle">
+                  <i class="fas fa-moon"></i>
+                  <i class="fas fa-sun"></i>
+              </a>
+            </div>
+          
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+</header>
+
+
+    <!-- Content -->
+
+    <div class="container mt-5">
+      
+
+<div class="post">
+
+  <a href="/blog/" class="back-to-blog">&larr; Back to blog</a>
+
+  <header class="post-header">
+    <h1 class="post-title">Optimizing Claude Token Usage: A Practical Guide to Context Management</h1>
+    
+    
+    
+    <p class="post-meta">
+      February 28, 2026
+      
+      <span class="reading-time">&middot; 5 min read</span>
+    </p>
+    
+    <p class="post-description-text">Learn how Claude uses context tokens and how to optimize them using compacting, task isolation, and tool management.</p>
+    
+    
+    <div class="post-tags">
+      
+      <span class="tag-badge">llm</span>
+      
+      <span class="tag-badge">claude</span>
+      
+      <span class="tag-badge">prompt-engineering</span>
+      
+      <span class="tag-badge">productivity</span>
+      
+    </div>
+    
+  </header>
+
+  
+  
+  
+  
+  
+  
+  <nav class="toc-wrapper">
+    <div class="toc-title">Table of Contents</div>
+    <ul>
+      
+        
+        
+          <li><a href="#1-understanding-claudes-context-stack">1. Understanding Claude’s Context Stack</a></li>
+        
+      
+        
+        
+          <li><a href="#2-the-core-problem-messages-grow-forever">2. The Core Problem: Messages Grow Forever</a></li>
+        
+      
+        
+        
+          <li><a href="#3-understanding-turns-kv-cache-and-why-claude-re-reads-context">3. Understanding Turns, KV Cache, and Why Claude Re-Reads Context</a></li>
+        
+      
+        
+        
+          <li><a href="#4-the-solution-compact">/compact</code</a></li>
+        
+      
+        
+        
+          <li><a href="#5-how-compact-affects-context"> Affects Context</a></li>
+        
+      
+        
+        
+          <li><a href="#6-automatic-compaction">6. Automatic Compaction</a></li>
+        
+      
+        
+        
+          <li><a href="#7-task-isolation-use-new-windows">7. Task Isolation: Use New Windows</a></li>
+        
+      
+        
+        
+          <li><a href="#8-tool-optimization-via-tools">/tools</code</a></li>
+        
+      
+        
+        
+          <li><a href="#9-summarization-vs-compact">/compact</code</a></li>
+        
+      
+        
+        
+          <li><a href="#10-optimization-checklist">10. Optimization Checklist</a></li>
+        
+      
+        
+        
+          <li><a href="#final-insight">Final Insight</a></li>
+        
+      
+    </ul>
+  </nav>
+  
+
+  <article class="post-content">
+    <h2 id="1-understanding-claudes-context-stack">1. Understanding Claude’s Context Stack</h2>
+
+<p>When Claude responds, it is not just reading your latest message.</p>
+
+<p>It processes an entire <strong>context stack</strong>.</p>
+
+<p>Every response consumes tokens from:</p>
+
+<div class="formula-box">
+
+Total Context Used =  
+System Prompt  
++ System Tools  
++ Memory  
++ Skills  
++ Messages  
++ Free Space (Remaining)
+
+</div>
+
+<p>Let’s break this down.</p>
+
+<hr />
+
+<h3 id="system-prompt">System Prompt</h3>
+<p>Core instructions that define Claude’s behaviour.</p>
+
+<hr />
+
+<h3 id="system-tools">System Tools</h3>
+<p>Capabilities Claude can access automatically.</p>
+
+<p>Examples:</p>
+
+<ul>
+  <li>NotebookEdit</li>
+  <li>Plan Mode</li>
+  <li>Agent</li>
+  <li>WebSearch</li>
+  <li>Code Execution</li>
+</ul>
+
+<p>These are loaded into context even if unused.</p>
+
+<hr />
+
+<h3 id="memory">Memory</h3>
+<p>Persisted knowledge about your workflow or project.</p>
+
+<hr />
+
+<h3 id="skills">Skills</h3>
+<p>Reusable capabilities Claude dynamically loads.</p>
+
+<hr />
+
+<h3 id="messages">Messages</h3>
+<p>Your conversation history.</p>
+
+<p>⚠️ This is the <strong>only component that continuously grows</strong>.</p>
+
+<hr />
+
+<h3 id="free-space">Free Space</h3>
+<p>Remaining capacity before hitting Claude’s context limit (typically ~200K tokens).</p>
+
+<hr />
+
+<h2 id="2-the-core-problem-messages-grow-forever">2. The Core Problem: Messages Grow Forever</h2>
+
+<p>Unlike system components, messages accumulate.</p>
+
+<p>Every prompt-response pair adds:</p>
+
+<div class="formula-box">
+
+Input Tokens + Output Tokens → Stored in History
+
+</div>
+
+<p>Over time:</p>
+
+<div class="formula-box">
+
+Messages → eat into Free Space
+
+</div>
+
+<p>This leads to:</p>
+
+<ul>
+  <li>Slower responses</li>
+  <li>Reduced reasoning quality</li>
+  <li>Higher cost</li>
+  <li>Truncation risks</li>
+</ul>
+
+<hr />
+
+<h2 id="3-understanding-turns-kv-cache-and-why-claude-re-reads-context">3. Understanding Turns, KV Cache, and Why Claude Re-Reads Context</h2>
+
+<p>To truly optimize Claude Code usage, you must understand one core concept:</p>
+
+<blockquote>
+  <p>Claude is priced on what it reads — and it re-reads everything every turn.</p>
+</blockquote>
+
+<hr />
+
+<h3 id="what-is-a-turn">What is a <em>Turn</em>?</h3>
+
+<p>A <strong>turn</strong> is one full interaction cycle:</p>
+
+<div class="formula-box">
+
+User prompt → Claude reads full context → Claude generates response
+
+</div>
+
+<p>That entire loop = <strong>1 turn</strong></p>
+
+<hr />
+
+<h3 id="what-constitutes-a-turn">What Constitutes a Turn?</h3>
+
+<p>Each turn includes Claude reprocessing:</p>
+
+<ul>
+  <li>System Prompt</li>
+  <li>Tools</li>
+  <li>Memory</li>
+  <li>Conversation History</li>
+  <li>Your New Input</li>
+</ul>
+
+<p>Even if <em>you didn’t repeat anything</em>, Claude still reprocesses all of it.</p>
+
+<hr />
+
+<h3 id="turn-examples">Turn Examples</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Interaction</th>
+      <th>Turn Count</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>You ask: “Fix this bug”</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>You follow up: “Optimize performance”</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>You say: “Add logging”</td>
+      <td>3</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Even though this feels like one conversation, Claude performs <strong>3 full inference passes</strong>.</p>
+
+<hr />
+
+<h3 id="mental-model">Mental Model</h3>
+
+<p>Think of Claude like this:</p>
+
+<blockquote>
+  <p>Each turn = Claude re-reading the entire book before answering the next question.</p>
+</blockquote>
+
+<p>It does not continue thinking from where it left off.</p>
+
+<hr />
+
+<h3 id="why-kv-cache-doesnt-help-across-turns">Why KV Cache Doesn’t Help Across Turns</h3>
+
+<p>Many assume:</p>
+
+<blockquote>
+  <p>“KV cache should store past context — so why re-read?”</p>
+</blockquote>
+
+<p>KV cache only works <strong>within one response generation</strong>.</p>
+
+<p>During token-by-token generation:</p>
+
+<div class="formula-box">
+
+Token → Token → Token
+
+</div>
+
+<p>KV cache avoids recomputing attention. But once Claude finishes answering:</p>
+
+<ul>
+  <li>That inference ends</li>
+  <li>KV cache is discarded</li>
+</ul>
+
+<p>Next turn = <strong>fresh inference</strong></p>
+
+<hr />
+
+<h3 id="why-claude-re-reads-every-turn">Why Claude Re-Reads Every Turn</h3>
+
+<p>Claude is stateless between turns by design. This allows:</p>
+
+<ul>
+  <li>Tool updates</li>
+  <li>File edits</li>
+  <li>Memory changes</li>
+  <li>Plan revisions</li>
+  <li>Safety guarantees</li>
+  <li>Deterministic behavior</li>
+</ul>
+
+<p>If KV cache were persisted, Claude could reason using stale state, tool outputs could become inconsistent, and conversation edits would break correctness.</p>
+
+<p>Persistent KV would lock Claude into past assumptions, break agent reliability, and make tool-driven workflows unsafe.</p>
+
+<p><strong>KV cache = scratchpad while writing an answer.</strong> Each new question requires re-reading the notebook, not reusing scratchpad thoughts.</p>
+
+<hr />
+
+<h2 id="4-the-solution-compact">4. The Solution: <code class="language-plaintext highlighter-rouge">/compact</code></h2>
+
+<p>Claude provides a built-in command:</p>
+
+<div class="formula-box">
+
+/compact
+
+</div>
+
+<hr />
+
+<h3 id="what-compact-does">What <code class="language-plaintext highlighter-rouge">/compact</code> Does</h3>
+
+<p>It summarizes conversation history while preserving:</p>
+
+<ul>
+  <li>Key decisions</li>
+  <li>Constraints</li>
+  <li>Instructions</li>
+  <li>Project goals</li>
+</ul>
+
+<p>It replaces:</p>
+
+<div class="formula-box">
+
+Long message chain  
+↓  
+Compressed semantic memory
+
+</div>
+
+<p>Example:</p>
+
+<p>Before:</p>
+
+<div class="formula-box">
+
+Messages = 120K tokens
+
+</div>
+
+<p>After:</p>
+
+<div class="formula-box">
+
+Messages = ~8K tokens
+
+</div>
+
+<hr />
+
+<h2 id="5-how-compact-affects-context">5. How <code class="language-plaintext highlighter-rouge">/compact</code> Affects Context</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Component</th>
+      <th>Before</th>
+      <th>After</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Messages</td>
+      <td>Huge</td>
+      <td>Minimal</td>
+    </tr>
+    <tr>
+      <td>Memory</td>
+      <td>Preserved</td>
+      <td>Preserved</td>
+    </tr>
+    <tr>
+      <td>System Prompt</td>
+      <td>Unchanged</td>
+      <td>Unchanged</td>
+    </tr>
+    <tr>
+      <td>Skills</td>
+      <td>Unchanged</td>
+      <td>Unchanged</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Claude does <strong>not forget your work</strong>.</p>
+
+<p>It retains:</p>
+
+<ul>
+  <li>Intent</li>
+  <li>Architecture</li>
+  <li>Constraints</li>
+</ul>
+
+<p>But removes:</p>
+
+<ul>
+  <li>Redundant iterations</li>
+  <li>Debugging loops</li>
+  <li>Dead discussions</li>
+</ul>
+
+<hr />
+
+<h2 id="6-automatic-compaction">6. Automatic Compaction</h2>
+
+<p>Claude may automatically run compaction when it detects:</p>
+
+<div class="formula-box">
+
+(Input + Output) &gt; Remaining Context Window
+
+</div>
+
+<p>Since the context window is typically:</p>
+
+<div class="formula-box">
+
+~200K tokens
+
+</div>
+
+<p>Automatic compaction prevents failure —<br />
+but happens <strong>late</strong>.</p>
+
+<p>Manual compaction = better performance.</p>
+
+<hr />
+
+<h2 id="7-task-isolation-use-new-windows">7. Task Isolation: Use New Windows</h2>
+
+<p>Claude carries history forward across a session.</p>
+
+<p>So if you switch from:</p>
+
+<div class="formula-box">
+
+RAG Debugging  
+→ Writing a Blog
+
+</div>
+
+<p>Claude still loads:</p>
+
+<ul>
+  <li>Code discussions</li>
+  <li>Architecture decisions</li>
+  <li>Tool usage</li>
+  <li>Previous iterations</li>
+</ul>
+
+<p>Even if irrelevant.</p>
+
+<p>Result:</p>
+
+<ul>
+  <li>Token waste</li>
+  <li>Slower reasoning</li>
+</ul>
+
+<hr />
+
+<h3 id="best-practice">Best Practice</h3>
+
+<p>Use a <strong>new Claude window for a new task</strong></p>
+
+<p>This removes:</p>
+
+<div class="formula-box">
+
+Unnecessary Message History
+
+</div>
+
+<p>and maximizes:</p>
+
+<div class="formula-box">
+
+Free Space
+
+</div>
+
+<hr />
+
+<h2 id="8-tool-optimization-via-tools">8. Tool Optimization via <code class="language-plaintext highlighter-rouge">/tools</code></h2>
+
+<p>Claude loads many tools by default.</p>
+
+<p>Check active tools using:</p>
+
+<div class="formula-box">
+
+/tools
+
+</div>
+
+<p>You may see:</p>
+
+<ul>
+  <li>NotebookEdit</li>
+  <li>Plan Mode</li>
+  <li>Agent</li>
+  <li>WebSearch</li>
+</ul>
+
+<p>Each tool consumes tokens in the system layer.</p>
+
+<hr />
+
+<h3 id="example">Example</h3>
+
+<p>If your project has no <code class="language-plaintext highlighter-rouge">.ipynb</code> files:</p>
+
+<p>👉 <code class="language-plaintext highlighter-rouge">NotebookEdit</code> is wasted context.</p>
+
+<p>If you’re not browsing live data:</p>
+
+<p>👉 <code class="language-plaintext highlighter-rouge">WebSearch</code> adds unnecessary overhead.</p>
+
+<p>If you’re not running autonomous workflows:</p>
+
+<p>👉 <code class="language-plaintext highlighter-rouge">Agent</code> may be irrelevant.</p>
+
+<p>Each unused tool acts as:</p>
+
+<div class="formula-box">
+
+Token Tax
+
+</div>
+
+<p>Removing unused tools improves:</p>
+
+<ul>
+  <li>Available context</li>
+  <li>Response efficiency</li>
+  <li>Cost efficiency</li>
+</ul>
+
+<hr />
+
+<h2 id="9-summarization-vs-compact">9. Summarization vs <code class="language-plaintext highlighter-rouge">/compact</code></h2>
+
+<p>Since Claude re-reads every turn, optimization means reducing what it has to read. The two most powerful tools are <strong>summarization</strong> and <strong><code class="language-plaintext highlighter-rouge">/compact</code></strong> — but they work differently.</p>
+
+<p><strong>Summarization</strong> is semantic compression. You manually convert a long conversation into a structured memory document:</p>
+
+<div class="formula-box">
+
+100K history → 20K structured memory
+
+</div>
+
+<p>This keeps decisions, constraints, and current state — and removes exploration, iterations, and dead paths.</p>
+
+<p><strong><code class="language-plaintext highlighter-rouge">/compact</code></strong> is structural pruning. Claude removes redundant reasoning, tool chatter, and repetition — but does not rewrite meaning.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Feature</th>
+      <th>Summarization</th>
+      <th><code class="language-plaintext highlighter-rouge">/compact</code></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Type</td>
+      <td>Semantic</td>
+      <td>Structural</td>
+    </tr>
+    <tr>
+      <td>Rewrites knowledge?</td>
+      <td>Yes</td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td>Removes clutter?</td>
+      <td>Yes</td>
+      <td>Yes</td>
+    </tr>
+    <tr>
+      <td>Keeps conclusions?</td>
+      <td>Depends on prompt</td>
+      <td>Automatically</td>
+    </tr>
+    <tr>
+      <td>Requires prompt?</td>
+      <td>Yes</td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td>Control level</td>
+      <td>High</td>
+      <td>Low</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Summarization</strong> = Rewrite the story
+<strong><code class="language-plaintext highlighter-rouge">/compact</code></strong> = Remove the noise</p>
+
+<h3 id="impact-on-usage">Impact on Usage</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Strategy</th>
+      <th>Context Size</th>
+      <th>Total Usage Trend</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>No optimization</td>
+      <td>Large</td>
+      <td>Explodes</td>
+    </tr>
+    <tr>
+      <td>Only <code class="language-plaintext highlighter-rouge">/compact</code></td>
+      <td>Medium</td>
+      <td>Moderate</td>
+    </tr>
+    <tr>
+      <td>Only summarization</td>
+      <td>Small</td>
+      <td>Efficient</td>
+    </tr>
+    <tr>
+      <td>Summarization + <code class="language-plaintext highlighter-rouge">/compact</code></td>
+      <td>Smallest</td>
+      <td>Optimal</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="practical-workflow">Practical Workflow</h3>
+
+<div class="formula-box">
+
+Explore → Decide → Summarize → /compact → Continue
+
+</div>
+
+<p>This converts recurring cost into one-time cost.</p>
+
+<hr />
+
+<h2 id="10-optimization-checklist">10. Optimization Checklist</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Action</th>
+      <th>Benefit</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Run <code class="language-plaintext highlighter-rouge">/compact</code> regularly</td>
+      <td>Shrinks message history</td>
+    </tr>
+    <tr>
+      <td>Summarize after exploration phases</td>
+      <td>Semantic compression of expensive history</td>
+    </tr>
+    <tr>
+      <td>Use new window per task</td>
+      <td>Eliminates irrelevant history</td>
+    </tr>
+    <tr>
+      <td>Check <code class="language-plaintext highlighter-rouge">/tools</code></td>
+      <td>Remove unused tool overhead</td>
+    </tr>
+    <tr>
+      <td>Avoid multi-project threads</td>
+      <td>Prevent silent context growth</td>
+    </tr>
+    <tr>
+      <td>Compact before major prompts</td>
+      <td>Maximize reasoning capacity</td>
+    </tr>
+    <tr>
+      <td>Combine summary + compact</td>
+      <td>Smallest possible context footprint</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h2 id="final-insight">Final Insight</h2>
+
+<p>Claude performance is rarely limited by intelligence.</p>
+
+<p>It is limited by:</p>
+
+<blockquote>
+  <p>Context hygiene.</p>
+</blockquote>
+
+<p>Managing:</p>
+
+<ul>
+  <li>Message growth</li>
+  <li>Tool load</li>
+  <li>Task isolation</li>
+  <li>Summarization cadence</li>
+</ul>
+
+<p>is the difference between:</p>
+
+<p>⚡ Fast, high-quality responses
+vs
+🐌 Slow, degraded reasoning</p>
+
+<p>Claude re-reads context every turn because it is stateless by design.</p>
+
+<p>KV cache helps within responses — not across turns.</p>
+
+<p>So optimization is not about faster thinking…</p>
+
+<p>It’s about giving Claude less to remember.</p>
+
+<p>Optimize context → Optimize Claude.</p>
+
+  </article>
+
+  
+  
+  
+  
+  <nav class="post-nav">
+    
+    <div class="post-nav-item prev">
+      <span class="nav-label">&larr; Previous</span>
+      <a href="/blog/2026/bias-variance-tradeoff/">Bias-Variance Tradeoff: From Theory to Ensemble Methods</a>
+    </div>
+    
+    
+    <div class="post-nav-item next">
+      <span class="nav-label">Next &rarr;</span>
+      <a href="/blog/2026/2d-convolution-image-processing/">2D Convolution in Image Processing — Complete Summary</a>
+    </div>
+    
+  </nav>
+  
+
+  
+
+</div>
+
+    </div>
+
+    <!-- Ask AI Modal -->
+    <div class="modal fade" id="askAiModal" tabindex="-1" role="dialog" aria-labelledby="askAiModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+    <div class="modal-content ask-ai-modal-content">
+      <!-- Step 1: Ask question -->
+      <div id="askAiStep1">
+        <div class="modal-header">
+          <h5 class="modal-title" id="askAiModalLabel"><i class="fas fa-comment-dots"></i> Ask AI about me</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted ask-ai-description">Ask anything about my research, interests, or what I've been working on.</p>
+          <textarea id="askAiQuestion" class="form-control ask-ai-textarea" rows="2" placeholder="e.g. What are his research interests?"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="ask-ai-btn ask-ai-btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="button" class="ask-ai-btn ask-ai-btn-primary" id="askAiSubmit">Next <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </div>
+      <!-- Step 2: Copy and go -->
+      <div id="askAiStep2" style="display:none;">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="fas fa-check-circle"></i> Ready</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p class="ask-ai-your-question"><em id="askAiQuestionPreview"></em></p>
+          <p class="text-muted ask-ai-description">Copy the prompt, then paste it in Claude.</p>
+          <div id="askAiCopyStatus" class="ask-ai-status ask-ai-status-success" style="display:none;">Copied!</div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="ask-ai-btn ask-ai-btn-secondary" id="askAiBack"><i class="fas fa-arrow-left"></i> Back</button>
+          <button type="button" class="ask-ai-btn ask-ai-btn-primary" id="askAiCopyBtn"><i class="fas fa-copy"></i> Copy</button>
+          <a href="https://claude.ai/new" target="_blank" class="ask-ai-btn ask-ai-btn-primary" id="askAiOpenClaude"><i class="fas fa-external-link-alt"></i> Open Claude</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var contextText = [
+    "Name: Monish  Keswani",
+    "Affiliation: Researcher at Czech Technical University",
+    "Previous: Research Assistant at IIT Hyderabad (with Prof. Vineeth N. Balasubramanian) and IISc Bengaluru (with Prof. Anirban Chakraborty)",
+    "Research Interests: Deep Learning, Computer Vision, Knowledge Distillation/Transfer, Interpretability",
+    "",
+    "## What I've been working on",
+    "",
+    "### Focus Areas",
+    "- Deep Learning Fundamentals: Strong, math-grounded coverage of core neural network building blocks — convolutions, batch normalization, dropout, activation functions, gradient computation",
+    "- Edge AI & Model Deployment: INT8 quantization (PTQ, QAT), mixed-precision training with BF16, depthwise-separable convolutions for mobile",
+    "- Numerical Precision & Hardware: Floating point representation, precision-range tradeoffs, tensor core computation, BF16",
+    "- Linear Algebra for ML: PCA, ZCA whitening, eigenvalue decomposition, covariance matrices",
+    "- ML Theory: Bias-variance tradeoff, ensemble methods (bagging, boosting, GBM, XGBoost), regularization",
+    "",
+    "### Depth Indicators",
+    "- Convolutions (2D, depthwise, pointwise): Deep",
+    "- Quantization & mixed precision: Deep",
+    "- Gradient derivations / backprop: Deep",
+    "- Batch normalization: Moderate",
+    "- Ensemble methods (RF, GBM, XGBoost): Moderate",
+    "- PCA / whitening: Moderate",
+    "- Dropout / regularization: Moderate",
+    "- LLM tooling: Surface",
+    "- Transformers / attention: Not yet covered",
+    "- Generative models: Not yet covered",
+    "",
+    "### Technical Style",
+    "- Math-first: derives formulas before explaining intuition",
+    "- Comprehensive: posts are study-guide length, not quick notes",
+    "- Practical grounding: connects theory to real constraints (hardware, memory, latency)",
+    "- Sources content from AI discussions and synthesizes into structured write-ups"
+  ].join("\n");
+
+  var step1 = document.getElementById('askAiStep1');
+  var step2 = document.getElementById('askAiStep2');
+  var questionEl = document.getElementById('askAiQuestion');
+  var questionPreview = document.getElementById('askAiQuestionPreview');
+  var copyStatus = document.getElementById('askAiCopyStatus');
+  var currentPrompt = '';
+
+  function showStep(n) {
+    step1.style.display = n === 1 ? '' : 'none';
+    step2.style.display = n === 2 ? '' : 'none';
+  }
+
+  function buildPrompt(question) {
+    return "You are answering questions about a researcher based ONLY on the following context. " +
+      "Do not make up information beyond what is provided. If the answer is not in the context, say so.\n\n" +
+      "---\n" + contextText + "\n---\n\n" +
+      "Question: " + question;
+  }
+
+  document.getElementById('askAiSubmit').addEventListener('click', function() {
+    var question = questionEl.value.trim();
+    if (!question) { questionEl.focus(); return; }
+    currentPrompt = buildPrompt(question);
+    questionPreview.textContent = question;
+    showStep(2);
+  });
+
+  document.getElementById('askAiBack').addEventListener('click', function() {
+    copyStatus.style.display = 'none';
+    showStep(1);
+  });
+
+  document.getElementById('askAiCopyBtn').addEventListener('click', function() {
+    var tempEl = document.createElement('textarea');
+    tempEl.value = currentPrompt;
+    tempEl.style.position = 'fixed';
+    tempEl.style.left = '-9999px';
+    document.body.appendChild(tempEl);
+    tempEl.select();
+    tempEl.setSelectionRange(0, 99999);
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(currentPrompt).then(function() {
+        flashCopyStatus();
+      }).catch(function() {
+        document.execCommand('copy');
+        flashCopyStatus();
+      });
+    } else {
+      document.execCommand('copy');
+      flashCopyStatus();
+    }
+    document.body.removeChild(tempEl);
+  });
+
+  function flashCopyStatus() {
+    copyStatus.style.display = 'block';
+    setTimeout(function() { copyStatus.style.display = 'none'; }, 2000);
+  }
+
+  questionEl.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      document.getElementById('askAiSubmit').click();
+    }
+  });
+
+  $('#askAiModal').on('hidden.bs.modal', function() {
+    showStep(1);
+    questionEl.value = '';
+    copyStatus.style.display = 'none';
+  });
+})();
+</script>
+
+
+    <!-- Footer -->
+
+    
+<footer class="fixed-bottom">
+  <div class="container mt-0">
+    &copy; Copyright 2026 Monish  Keswani.
+    Powered by <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme.
+
+    
+    
+    Last updated: April 27, 2026.
+    
+  </div>
+</footer>
+
+
+
+  </body>
+
+  <!-- Bootsrap & MDB scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.4.4/umd/popper.min.js" integrity="sha512-eUQ9hGdLjBjY3F41CScH3UX+4JDSI9zXeroz7hJ+RteoCaY+GP/LDoM8AO+Pt+DRFw3nXqsjh9Zsts8hnYv8/A==" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha512-M5KW3ztuIICmVIhjSqXe01oV2bpe248gOxqmlcYrEzAvws7Pw3z6BK0iGbrwvdrUQUhi3eXgtxp5I8PDo9YfjQ==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/js/mdb.min.js" integrity="sha512-Mug9KHKmroQFMLm93zGrjhibM2z2Obg9l6qFG2qKjXEXkMp/VDkI4uju9m4QKPjWSwQ6O2qzZEnJDEeCw0Blcw==" crossorigin="anonymous"></script>
+
+  
+<!-- Mansory & imagesLoaded -->
+<script defer src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
+<script defer src="https://unpkg.com/imagesloaded@4/imagesloaded.pkgd.min.js"></script>
+<script defer src="/assets/js/mansory.js" type="text/javascript"></script>
+
+
+  
+
+
+<!-- Medium Zoom JS -->
+<script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.6/dist/medium-zoom.min.js" integrity="sha256-EdPgYcPk/IIrw7FYeuJQexva49pVRZNmt3LculEr7zM=" crossorigin="anonymous"></script>
+<script src="/assets/js/zoom.js"></script>
+
+
+<!-- Load Common JS -->
+<script src="/assets/js/common.js"></script>
+
+
+</html>
